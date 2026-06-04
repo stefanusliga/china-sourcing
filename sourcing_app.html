@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>China Sourcing Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#f7f7f5;--bg2:#ffffff;--bg3:#f1f0ed;--bg4:#e8e7e3;
+  --accent:#2563eb;--accent2:#1d4ed8;--od:rgba(37,99,235,.08);--og:rgba(37,99,235,.2);
+  --text:#1a1a1a;--text2:#4a4a4a;--text3:#888888;
+  --border:#e5e5e2;--border2:rgba(37,99,235,.25);
+  --green:#16a34a;--red:#dc2626;--yellow:#d97706;
+  --r:10px;--rs:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.screen{display:none}.screen.active{display:block;animation:fadeIn .2s ease}
+.app{max-width:960px;margin:0 auto;padding:28px 20px 120px}
+
+/* ADMIN NAV TABS */
+.admin-tabs{display:flex;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px}
+.admin-tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit;background:none;border-top:none;border-left:none;border-right:none}
+.admin-tab:hover{color:var(--text2)}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* CLIENT MANAGEMENT */
+.client-mgmt-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;animation:fadeIn .2s}
+.client-mgmt-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px}
+.client-mgmt-info{display:flex;align-items:center;gap:12px}
+.client-mgmt-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#16a34a,#2ab7af);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.client-mgmt-name{font-size:14px;font-weight:600;color:var(--text)}
+.client-mgmt-email{font-size:11px;color:var(--text3);margin-top:2px}
+.client-mgmt-actions{display:flex;align-items:center;gap:8px}
+.btn-sm{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:11px;font-family:inherit;padding:5px 12px;cursor:pointer;transition:all .2s}
+.btn-sm:hover{border-color:var(--red);color:var(--red)}
+.btn-sm.primary{background:var(--od);border-color:var(--border2);color:var(--accent)}
+.btn-sm.primary:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:400px;animation:fadeIn .3s;box-shadow:var(--shadow-md)}
+.login-logo{font-size:22px;font-weight:700;margin-bottom:4px}
+.login-logo span{color:var(--accent)}
+.login-sub{font-size:12px;color:var(--text3);margin-bottom:32px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:11px;color:var(--text3);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.login-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);transition:border-color .2s,box-shadow .2s}
+.login-field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--od)}
+.login-field input::placeholder{color:var(--text3)}
+.login-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px;transition:all .2s;box-shadow:0 2px 12px var(--og)}
+.login-btn:hover{background:var(--accent2)}
+.login-btn:disabled{opacity:.6;pointer-events:none}
+.login-err{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:12px;display:none}
+.login-err.show{display:block}
+
+/* TOP NAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.topnav-brand{font-size:15px;font-weight:700}
+.topnav-brand span{color:var(--accent)}
+.topnav-right{display:flex;align-items:center;gap:12px}
+.topnav-user{font-size:12px;color:var(--text3)}
+.topnav-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--od);color:var(--accent);border:1px solid var(--border2);border-radius:100px;padding:2px 10px}
+.logout-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:12px;font-family:inherit;padding:6px 12px;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* STATUS BADGE */
+.status-badge{display:inline-flex;align-items:center;gap:5px;border-radius:100px;padding:3px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.status-belum{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.status-menunggu{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.status-lunas{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+
+/* SHARED COMPONENTS */
+.badge{display:inline-flex;align-items:center;gap:7px;background:var(--od);border:1px solid var(--border2);border-radius:100px;padding:4px 14px 4px 8px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.badge .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+.om-hdr{margin-bottom:28px}
+.om-hdr h1{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.om-hdr h1 span{color:var(--accent)}
+.om-hdr p{font-size:13px;color:var(--text3)}
+.om-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.om-search{flex:1;min-width:200px;position:relative}
+.om-search input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px 11px 38px;font-size:13px;font-family:inherit;color:var(--text);transition:border-color .2s}
+.om-search input::placeholder{color:var(--text3)}
+.om-search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--od)}
+.om-search .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+.btn-new{display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:0 2px 12px var(--og)}
+.btn-new:hover{background:var(--accent2);transform:translateY(-1px)}
+.clients-list{display:flex;flex-direction:column;gap:10px}
+.client-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.client-card:hover{border-color:rgba(255,255,255,.12)}
+.client-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;transition:background .2s}
+.client-hdr:hover{background:var(--bg3)}
+.client-hdr-left{display:flex;align-items:center;gap:12px}
+.client-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.client-name{font-size:15px;font-weight:600;color:var(--text)}
+.client-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.client-hdr-right{display:flex;align-items:center;gap:10px}
+.client-count{font-size:11px;background:var(--od);color:var(--accent);border:1px solid var(--border2);border-radius:100px;padding:2px 10px;font-weight:600}
+.client-chevron{color:var(--text3);font-size:12px;transition:transform .25s}
+.client-card.open .client-chevron{transform:rotate(180deg)}
+.client-card.open .client-hdr{background:var(--bg3)}
+.orders-list{border-top:1px solid var(--border);display:none;padding:8px}
+.client-card.open .orders-list{display:block;animation:fadeIn .2s}
+.order-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--rs);cursor:pointer;transition:background .2s;gap:12px}
+.order-row:hover{background:var(--bg4)}
+.order-row-left{display:flex;align-items:center;gap:10px}
+.order-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.order-date{font-size:13px;font-weight:600;color:var(--text)}
+.order-note{font-size:11px;color:var(--text3);margin-top:1px}
+.order-row-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.order-dup{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:4px 8px;border-radius:6px;transition:all .2s;font-family:inherit}
+.order-dup:hover{background:var(--od);color:var(--accent)}
+.order-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:4px 8px;border-radius:6px;transition:all .2s;font-family:inherit}
+.order-del:hover{background:rgba(255,80,80,.1);color:var(--red)}
+.add-order-row{display:flex;align-items:center;gap:8px;padding:8px 12px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;border-radius:var(--rs);transition:background .2s;margin-top:2px}
+.add-order-row:hover{background:var(--od)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .ei{font-size:40px;margin-bottom:12px}
+.empty-state p{font-size:14px;margin-bottom:6px;color:var(--text2)}
+.client-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:6px;transition:all .2s}
+.client-del:hover{background:rgba(255,80,80,.1);color:var(--red)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-bg.show{opacity:1;pointer-events:auto}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:440px;animation:fadeIn .2s}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:6px}
+.modal p{font-size:12px;color:var(--text3);margin-bottom:22px}
+.modal-field{margin-bottom:16px}
+.modal-field label{display:block;font-size:11px;color:var(--text3);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.modal-field input,.modal-field select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:inherit;color:var(--text);transition:border-color .2s}
+.modal-field input:focus,.modal-field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--od)}
+.modal-field input::placeholder{color:var(--text3)}
+.modal-actions{display:flex;gap:10px;margin-top:24px}
+.modal-btn{flex:1;padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.modal-btn.primary{background:var(--accent);color:#fff}
+.modal-btn.primary:hover{background:var(--accent2)}
+.modal-btn.secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.modal-btn.secondary:hover{color:var(--text)}
+
+/* CALC TOPBAR */
+.calc-topbar{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.back-btn{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;font-family:inherit;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap}
+.back-btn:hover{border-color:rgba(255,255,255,.15);color:var(--text)}
+.calc-topbar-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.edit-client-input{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-size:16px;font-weight:700;font-family:inherit;width:100%;outline:none;padding:2px 0;transition:border-color .2s}
+.edit-client-input:hover,.edit-client-input:focus{border-bottom-color:var(--accent)}
+.edit-date-input{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text3);font-size:12px;font-family:inherit;width:160px;outline:none;padding:2px 0;transition:border-color .2s;color-scheme:dark}
+.edit-date-input:hover,.edit-date-input:focus{border-bottom-color:var(--accent);color:var(--text2)}
+.calc-topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+
+/* PAYMENT STATUS BAR */
+.payment-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 20px;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.payment-bar-left{display:flex;align-items:center;gap:12px}
+.payment-label{font-size:12px;color:var(--text3);font-weight:500}
+.btn-confirm{background:var(--green);color:#0f0e0d;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-confirm:hover{filter:brightness(1.1)}
+.btn-confirm:disabled{opacity:.5;pointer-events:none}
+.btn-unconfirm{background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-unconfirm:hover{border-color:var(--red);color:var(--red)}
+
+/* TABS */
+.tabs-wrap{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{padding:7px 16px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:var(--text2);border-color:rgba(255,255,255,.15)}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 16px var(--og)}
+.add-tab{padding:7px 14px;border-radius:100px;border:1px dashed var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
+.add-tab:hover{border-color:var(--accent);color:var(--accent)}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;animation:fadeIn .2s ease;box-shadow:var(--shadow)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border)}
+.pname-input{background:transparent;border:none;color:var(--text);font-size:15px;font-weight:600;font-family:inherit;width:100%;outline:none}
+.pname-input::placeholder{color:var(--text3)}
+.pname-readonly{font-size:15px;font-weight:600;color:var(--text)}
+.del-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:12px;font-family:inherit;padding:4px 10px;border-radius:6px;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.del-btn:hover{background:rgba(255,80,80,.1);color:var(--red)}
+.card-body{padding:20px}
+.slabel{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:4px;display:flex;align-items:center;gap:8px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:580px){.g2,.g3{grid-template-columns:1fr 1fr}}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;color:var(--text3);font-weight:500}
+.field input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 11px;font-size:14px;font-family:'JetBrains Mono',monospace;color:var(--text);width:100%;transition:border-color .2s}
+.field input::placeholder{color:var(--text3);font-family:'Inter',sans-serif;font-size:12px}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--od)}
+.field .hint{font-size:10px;color:var(--text3);font-style:italic}
+.field .conv{font-size:11px;color:var(--accent);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.field-val{font-size:14px;font-family:'JetBrains Mono',monospace;color:var(--text);padding:8px 11px;background:var(--bg4);border-radius:var(--rs);border:1px solid var(--border)}
+
+/* PHOTOS */
+.photo-toggle-wrap{margin-bottom:12px;border:1px solid var(--border);border-radius:var(--rs);overflow:hidden}
+.photo-toggle-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;background:var(--bg3);transition:background .2s;user-select:none}
+.photo-toggle-hdr:hover{background:var(--bg4)}
+.photo-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:0}
+.toggle-arrow{font-size:11px;color:var(--text3);transition:transform .2s}
+.photo-section{padding:10px 12px;border-top:1px solid var(--border)}
+.drop-zone{border:1px dashed var(--border);border-radius:var(--rs);padding:18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;background:var(--bg3);position:relative}
+.drop-zone:hover{border-color:var(--accent);background:var(--od)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{width:36px;height:36px;background:var(--bg4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dz-txt .dt1{font-size:13px;font-weight:500;color:var(--text2)}
+.dz-txt .dt2{font-size:11px;color:var(--text3);margin-top:2px}
+.photo-grid{display:flex;flex-wrap:wrap;gap:8px}
+.thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;animation:fadeIn .2s}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;transition:transform .2s}
+.thumb:hover img{transform:scale(1.05)}
+.thumb .rx{position:absolute;top:3px;right:3px;width:17px;height:17px;background:rgba(0,0,0,.75);border:none;border-radius:50%;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.thumb .rx:hover{background:var(--red)}
+.add-more{width:72px;height:72px;border-radius:8px;border:1px dashed var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:20px;color:var(--text3);transition:all .2s;flex-shrink:0}
+.add-more:hover{border-color:var(--accent);color:var(--accent);background:var(--od)}
+.add-more input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+
+/* RESULTS */
+.res-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
+.bkd{padding:18px 20px}
+.bkd-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)}
+.brow:last-child{border-bottom:none}
+.bval{font-family:'JetBrains Mono',monospace;color:var(--text);font-size:12px}
+.brow.tot{border-top:1px solid var(--border2)!important;margin-top:4px;padding-top:8px;font-weight:600;color:var(--text);font-size:13px}
+.brow.tot .bval{color:var(--accent);font-size:14px}
+.brow.urow .bval{color:var(--green)}
+
+/* TWO COLUMN */
+.two-col-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.col-left{min-width:0}
+.col-right{min-width:0}
+@media(max-width:780px){.two-col-layout{grid-template-columns:1fr}}
+.rate-bar-inline{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:14px 18px;margin-bottom:14px}
+
+/* CLIENT VIEW */
+.client-order-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;animation:fadeIn .2s;box-shadow:var(--shadow)}
+.client-order-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background .15s}
+.client-order-hdr:hover{background:var(--bg3)}
+.client-order-hdr.open{border-bottom-color:var(--border)}
+.client-order-body{display:none}
+.client-order-body.open{display:block;animation:fadeIn .2s}
+.client-order-chevron{font-size:11px;color:var(--text3);transition:transform .2s}
+.client-order-chevron.open{transform:rotate(180deg)}
+.client-order-title{font-size:15px;font-weight:700}
+.client-order-date{font-size:12px;color:var(--text3);margin-top:3px}
+.client-product-row{padding:12px 20px;border-bottom:1px solid var(--border)}
+.client-product-name{font-size:13px;font-weight:600;margin-bottom:6px}
+.client-detail-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);padding:3px 0}
+.client-detail-val{font-family:'JetBrains Mono',monospace;color:var(--text)}
+.client-total-section{padding:16px 20px;background:var(--bg3)}
+.client-photo-grid{display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px}
+.client-photo-img{width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform .2s}
+.client-photo-img:hover{transform:scale(1.05)}
+
+/* EXPORT */
+.exp-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.exp-btn{display:flex;align-items:center;gap:9px;background:var(--accent);color:#fff;border:none;border-radius:100px;padding:12px 20px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 4px 20px var(--og);transition:all .2s}
+.exp-btn:hover{background:var(--accent2);transform:translateY(-2px)}
+.exp-btn.loading{opacity:.7;pointer-events:none}
+.toast{background:var(--bg2);border:1px solid var(--border2);color:var(--accent);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;opacity:0;transform:translateY(6px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.img-modal{position:fixed;inset:0;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;padding:24px;z-index:2000;opacity:0;pointer-events:none;transition:opacity .2s}
+.img-modal.show{opacity:1;pointer-events:auto}
+.img-modal-inner{position:relative;max-width:min(92vw,980px);max-height:90vh}
+.img-modal img{max-width:100%;max-height:90vh;border-radius:16px;display:block}
+.img-modal-close{position:absolute;top:-14px;right:-14px;width:36px;height:36px;border:none;border-radius:50%;background:var(--accent);color:#fff;font-size:18px;cursor:pointer}
+#pdf-render{position:fixed;top:-9999px;left:0;width:794px;background:#0f0e0d;font-family:'Inter',sans-serif;color:#f0ede8}
+.loading-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;color:var(--text3)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen active loading-screen">
+  <div class="spinner"></div>
+  <div style="font-size:13px;">Memuat...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">China <span>Sourcing</span></div>
+      <div class="login-sub">Masuk dengan akun Anda</div>
+      <div class="login-field">
+        <label>Email</label>
+        <input type="email" id="inp-email" placeholder="email@anda.com" autocomplete="email"/>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="inp-password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Masuk</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: ORDER MANAGER -->
+<div id="screen-manager" class="screen">
+  <div class="topnav">
+    <div class="topnav-brand">China <span>Sourcing</span></div>
+    <div class="topnav-right">
+      <span class="topnav-user" id="nav-email"></span>
+      <span class="topnav-role">Admin</span>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" id="tab-orders" onclick="switchAdminTab('orders')">📦 Orders</button>
+    <button class="admin-tab" id="tab-clients" onclick="switchAdminTab('clients')">👥 Clients</button>
+  </div>
+  <div class="app">
+    <!-- ORDERS PANEL -->
+    <div id="panel-orders">
+      <div class="om-hdr">
+        <div class="badge"><span class="dot"></span> Order Manager</div>
+        <h1>China <span>Sourcing</span></h1>
+        <p>Kelola semua order berdasarkan klien dan tanggal</p>
+      </div>
+      <div class="om-toolbar">
+        <div class="om-search">
+          <span class="si">🔍</span>
+          <input type="text" id="search-input" placeholder="Cari nama klien..." oninput="renderManager()"/>
+        </div>
+        <button class="btn-new" onclick="openNewOrderModal()">＋ New Order</button>
+      </div>
+      <div id="clients-list"></div>
+    </div>
+    <!-- CLIENTS PANEL -->
+    <div id="panel-clients" style="display:none;">
+      <div class="om-hdr">
+        <div class="badge"><span class="dot"></span> Client Accounts</div>
+        <h1>Kelola <span>Client</span></h1>
+        <p>Buat dan kelola akun client yang bisa login untuk melihat order mereka</p>
+      </div>
+      <div class="om-toolbar">
+        <div class="om-search">
+          <span class="si">🔍</span>
+          <input type="text" id="client-search" placeholder="Cari client..." oninput="renderClientsPanel()"/>
+        </div>
+        <button class="btn-new" onclick="openNewClientModal()">＋ Tambah Client</button>
+      </div>
+      <div id="clients-mgmt-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: CALCULATOR -->
+<div id="screen-calc" class="screen">
+  <div class="topnav">
+    <div class="topnav-brand">China <span>Sourcing</span></div>
+    <div class="topnav-right">
+      <span class="topnav-user" id="nav-email-calc"></span>
+      <span class="topnav-role">Admin</span>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="app">
+    <div class="calc-topbar">
+      <button class="back-btn" onclick="goBack()">&#8592; Kembali</button>
+      <div class="calc-topbar-info">
+        <input class="edit-client-input" id="calc-client-input" value="-" placeholder="Nama klien..."/>
+        <input class="edit-date-input" id="calc-date-input" type="date" value=""/>
+      </div>
+      <div class="calc-topbar-right" id="calc-topbar-right"></div>
+    </div>
+    <div id="payment-bar"></div>
+    <div class="tabs-wrap" id="tabs"></div>
+    <div id="page0"></div>
+  </div>
+</div>
+
+<!-- CLIENT VIEW -->
+<div id="screen-client" class="screen">
+  <div class="topnav">
+    <div class="topnav-brand">China <span>Sourcing</span></div>
+    <div class="topnav-right">
+      <span class="topnav-user" id="nav-email-client"></span>
+      <span class="topnav-role" style="background:rgba(78,205,196,.12);color:var(--green);border-color:rgba(78,205,196,.3);">Client</span>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="app">
+    <div class="om-hdr">
+      <div class="badge"><span class="dot"></span> Order Saya</div>
+      <h1>China <span>Sourcing</span></h1>
+      <p>Lihat status dan detail order Anda</p>
+    </div>
+    <div id="client-orders-list"></div>
+  </div>
+</div>
+
+<!-- MODAL: NEW CLIENT -->
+<div class="modal-bg" id="modal-new-client" onclick="closeModalIf(event,'modal-new-client')">
+  <div class="modal">
+    <h2>Tambah Client</h2>
+    <p>Buat akun login untuk client. Client bisa login dan lihat order mereka.</p>
+    <div class="modal-field">
+      <label>Nama Lengkap</label>
+      <input type="text" id="inp-client-fullname" placeholder="cth: PT Maju Bersama"/>
+    </div>
+    <div class="modal-field">
+      <label>Email</label>
+      <input type="email" id="inp-client-email" placeholder="client@email.com"/>
+    </div>
+    <div class="modal-field">
+      <label>Password</label>
+      <input type="text" id="inp-client-password" placeholder="min. 6 karakter"/>
+    </div>
+    <div id="new-client-err" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-new-client')">Batal</button>
+      <button class="modal-btn primary" id="btn-create-client" onclick="createClient()">Buat Akun &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NEW ORDER -->
+<div class="modal-bg" id="modal-new" onclick="closeModalIf(event,'modal-new')">
+  <div class="modal">
+    <h2>New Order</h2>
+    <p>Masukkan nama klien dan tanggal order</p>
+    <div class="modal-field">
+      <label>Klien</label>
+      <select id="inp-client-select" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:inherit;color:var(--text);width:100%;outline:none;">
+        <option value="">-- Pilih klien atau ketik baru --</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Atau nama klien baru</label>
+      <input type="text" id="inp-client-new" placeholder="Nama klien baru..." autocomplete="off"/>
+    </div>
+    <div class="modal-field">
+      <label>Tanggal Order</label>
+      <input type="date" id="inp-date"/>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-new')">Batal</button>
+      <button class="modal-btn primary" onclick="createOrder()">Buat Order &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD ORDER -->
+<div class="modal-bg" id="modal-addorder" onclick="closeModalIf(event,'modal-addorder')">
+  <div class="modal">
+    <h2>Tambah Order</h2>
+    <p id="modal-addorder-sub">Tambah order baru untuk klien ini</p>
+    <div class="modal-field">
+      <label>Tanggal Order</label>
+      <input type="date" id="inp-date-add"/>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-addorder')">Batal</button>
+      <button class="modal-btn primary" onclick="createOrderForClient()">Buat Order &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT BAR -->
+<div class="exp-bar" id="exp-bar" style="display:none">
+  <div class="toast" id="toast">&#10003; PDF berhasil didownload!</div>
+  <button class="exp-btn" id="exp-btn" onclick="exportAllPDF()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Export PDF
+  </button>
+</div>
+
+<div id="pdf-render"></div>
+<div class="img-modal" id="img-modal" onclick="closeImageModal(event)">
+  <div class="img-modal-inner">
+    <button class="img-modal-close" onclick="closeImageModal(event)">x</button>
+    <img id="img-modal-preview" alt="Preview"/>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════════════
+const SUPABASE_URL='https://xfsoszcxxlprxywzxkvs.supabase.co';
+const SUPABASE_KEY='sb_publishable_HUeLYqy912CGvHy0PV8TbQ_0zZ1AE9V';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const BUCKET='sourcing-photos';
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+const fmt=(n,d=0)=>(isNaN(n)||!isFinite(n))?'–':n.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const parseNum=str=>{if(str===''||str==null)return 0;let s=String(str).trim();if(s.includes('.')&&s.includes(','))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return isNaN(n)?0:n;};
+const toV=n=>(!n&&n!==0)||n===0?'':String(n);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+const esc2=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+const fmtDate=dk=>{try{const[y,m,d]=dk.split('-');const mn=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];return parseInt(d)+' '+mn[parseInt(m)-1]+' '+y;}catch{return dk;}};
+const calcCbm=p=>(p.panjang*p.lebar*p.tinggi)/1000000;
+const statusLabel={belum_bayar:'⬜ Pending',menunggu_konfirmasi:'🟡 Pay',lunas:'🟢 Pay ✓'};
+const statusClass={belum_bayar:'status-belum',menunggu_konfirmasi:'status-menunggu',lunas:'status-lunas'};
+
+function calc(p){
+  const cbmUsed=calcCbm(p);
+  const hargaBarang=(p.harga_yuan||0)*globalRate*(p.qty_per_dus||0);
+  const biayaLokal=(p.biaya_lokal_yuan||0)*globalRate;
+  const tambahan=Number(p.biaya_tambahan)||0;
+  const totalProdukDus=hargaBarang+biayaLokal+tambahan;
+  const perUnit=(p.qty_per_dus||0)>0?totalProdukDus/(p.qty_per_dus||0):0;
+  return{cbmUsed,hargaBarang,biayaLokal,tambahan,totalProdukDus,perUnit};
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='';});
+  const el=$(id);if(el){el.classList.add('active');}
+  // Pastikan loading screen tersembunyi
+  const loading=$('screen-loading');if(loading)loading.style.display='none';
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+let currentUser=null, currentProfile=null;
+
+async function doLogin(){
+  const email=($('inp-email').value||'').trim();
+  const password=($('inp-password').value||'').trim();
+  const err=$('login-err'), btn=$('login-btn');
+  err.classList.remove('show');
+  if(!email||!password){err.textContent='Email dan password wajib diisi.';err.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Memuat...';
+  try{
+    const loginPromise=sb.auth.signInWithPassword({email,password});
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('Koneksi timeout. Coba lagi.')),10000));
+    const{data,error}=await Promise.race([loginPromise,timeout]);
+    if(error)throw error;
+    await initUser(data.user);
+  }catch(e){
+    err.textContent=e.message||'Login gagal. Coba lagi.';
+    err.classList.add('show');
+    btn.disabled=false;btn.textContent='Masuk';
+  }
+}
+
+async function initUser(user){
+  currentUser=user;
+  $('nav-email').textContent=user.email;
+  $('nav-email-calc').textContent=user.email;
+  $('nav-email-client').textContent=user.email;
+
+  try{
+    const profilePromise=sb.from('profiles').select('*').eq('id',user.id).single();
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('Profile timeout')),8000));
+    const{data:profile,error}=await Promise.race([profilePromise,timeout]);
+    if(error)throw error;
+    currentProfile=profile;
+
+    if(profile?.role==='admin'){
+      showScreen('screen-manager');
+      $('clients-list').innerHTML='<div class="loading-screen" style="min-height:200px;"><div class="spinner"></div></div>';
+      await loadAdminData();
+    } else {
+      showScreen('screen-client');
+      $('client-orders-list').innerHTML='<div class="loading-screen" style="min-height:200px;"><div class="spinner"></div></div>';
+      await loadClientOrders();
+    }
+  }catch(e){
+    console.error('initUser error:',e.message);
+    // Jika profile tidak bisa diload, fallback ke login
+    showScreen('screen-login');
+    const err=$('login-err');
+    if(err){err.textContent='Error: '+e.message+'. Refresh dan coba lagi.';err.classList.add('show');}
+  }
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null;currentProfile=null;
+  allOrders={};showScreen('screen-login');
+}
+
+// ══════════════════════════════════════════════
+// ADMIN TAB SWITCHING
+// ══════════════════════════════════════════════
+function switchAdminTab(tab){
+  $('panel-orders').style.display=tab==='orders'?'':'none';
+  $('panel-clients').style.display=tab==='clients'?'':'none';
+  $('tab-orders').classList.toggle('active',tab==='orders');
+  $('tab-clients').classList.toggle('active',tab==='clients');
+  if(tab==='clients')renderClientsPanel();
+}
+
+// ══════════════════════════════════════════════
+// CLIENT MANAGEMENT
+// ══════════════════════════════════════════════
+function renderClientsPanel(){
+  const q=($('client-search')?.value||'').toLowerCase();
+  const list=$('clients-mgmt-list');if(!list)return;
+  const clients=Object.entries(allClients)
+    .filter(([name])=>!q||name.toLowerCase().includes(q))
+    .sort((a,b)=>a[0].localeCompare(b[0]));
+
+  if(!clients.length){
+    list.innerHTML='<div class="empty-state"><div class="ei">👥</div><p>'+(q?'Tidak ada client "'+esc2(q)+'"':'Belum ada client')+'</p><small>Klik "Tambah Client" untuk buat akun client baru</small></div>';
+    return;
+  }
+  list.innerHTML=clients.map(([name,prof])=>{
+    const orderCount=(allOrders[name]||[]).length;
+    return '<div class="client-mgmt-card"><div class="client-mgmt-row">'
+      +'<div class="client-mgmt-info">'
+      +'<div class="client-mgmt-avatar">'+name.charAt(0).toUpperCase()+'</div>'
+      +'<div><div class="client-mgmt-name">'+esc2(name)+'</div>'
+      +'<div class="client-mgmt-email">'+esc2(prof.email)+'</div></div></div>'
+      +'<div class="client-mgmt-actions">'
+      +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:2px 10px;">'+orderCount+' order</span>'
+      +'<button class="btn-sm" onclick="confirmDeleteClientAccount(\''+esc(prof.id)+'\',\''+esc(name)+'\')">&#128465; Hapus</button>'
+      +'</div></div></div>';
+  }).join('');
+}
+
+function openNewClientModal(){
+  $('inp-client-fullname').value='';
+  $('inp-client-email').value='';
+  $('inp-client-password').value='';
+  $('new-client-err').style.display='none';
+  $('modal-new-client').classList.add('show');
+  setTimeout(()=>$('inp-client-fullname').focus(),80);
+}
+
+async function createClient(){
+  const fullName=($('inp-client-fullname').value||'').trim();
+  const email=($('inp-client-email').value||'').trim();
+  const password=($('inp-client-password').value||'').trim();
+  const errEl=$('new-client-err');
+  const btn=$('btn-create-client');
+  errEl.style.display='none';
+
+  if(!fullName){errEl.textContent='Nama lengkap wajib diisi.';errEl.style.display='block';return;}
+  if(!email){errEl.textContent='Email wajib diisi.';errEl.style.display='block';return;}
+  if(password.length<6){errEl.textContent='Password minimal 6 karakter.';errEl.style.display='block';return;}
+
+  btn.disabled=true;btn.textContent='Membuat akun...';
+
+  // Use separate client instance so admin session is not replaced
+  const sbTemp=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+  const{data,error}=await sbTemp.auth.signUp({
+    email,password,
+    options:{data:{role:'client',full_name:fullName}}
+  });
+
+  if(error){errEl.textContent='Gagal: '+error.message;errEl.style.display='block';btn.disabled=false;btn.textContent='Buat Akun →';return;}
+
+  if(data.user){
+    // Insert profile manual karena trigger tidak ada
+    await new Promise(r=>setTimeout(r,500));
+    await sb.from('profiles').insert({
+      id:data.user.id,
+      email:email,
+      role:'client',
+      full_name:fullName
+    });
+    allClients[fullName]={id:data.user.id,email,full_name:fullName};
+  }
+
+  btn.disabled=false;btn.textContent='Buat Akun →';
+  closeModal('modal-new-client');
+  renderClientsPanel();
+  renderManager();
+  alert('Akun client "'+fullName+'" berhasil dibuat!\n\nEmail: '+email+'\nPassword: '+password+'\n\nCatat dan share info ini ke client.');
+}
+
+async function confirmDeleteClientAccount(clientId,name){
+  if(!confirm('Hapus akun client "'+name+'"? Order mereka tidak akan terhapus, tapi mereka tidak bisa login lagi.'))return;
+  // We can only deactivate via profile update since admin delete requires service key
+  await sb.from('profiles').update({role:'disabled'}).eq('id',clientId);
+  delete allClients[name];
+  renderClientsPanel();
+}
+
+// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+let allOrders={};  // { clientName: [ {order, products, photos} ] }
+let allClients={}; // { clientName: { id, email } }
+
+async function loadAdminData(){
+  // Run both queries in parallel
+  const[ordersRes,profilesRes]=await Promise.all([
+    sb.from('orders').select('*,products(*),photos(*)').order('order_date',{ascending:false}),
+    sb.from('profiles').select('*').eq('role','client')
+  ]);
+
+  allOrders={};
+  (ordersRes.data||[]).forEach(o=>{
+    const name=o.client_name;
+    if(!allOrders[name])allOrders[name]=[];
+    allOrders[name].push(o);
+  });
+
+  allClients={};
+  (profilesRes.data||[]).forEach(p=>{allClients[p.full_name||p.email]=p;});
+
+  renderManager();
+}
+
+// ══════════════════════════════════════════════
+// ADMIN: RENDER MANAGER
+// ══════════════════════════════════════════════
+function renderManager(){
+  const q=($('search-input')?.value||'').toLowerCase().trim();
+  const names=Object.keys(allOrders).filter(c=>!q||c.toLowerCase().includes(q)).sort((a,b)=>a.localeCompare(b));
+  const list=$('clients-list');if(!list)return;
+
+  // populate client select
+  const sel=$('inp-client-select');
+  if(sel){sel.innerHTML='<option value="">-- Pilih klien yang sudah ada --</option>'+Object.keys(allClients).map(n=>'<option value="'+esc2(n)+'">'+esc2(n)+'</option>').join('');}
+
+  if(!names.length){
+    list.innerHTML='<div class="empty-state"><div class="ei">📦</div><p>'+(q?'Tidak ada klien "'+esc2(q)+'"':'Belum ada order')+'</p><small>'+(q?'Coba kata kunci lain':'Klik "New Order" untuk mulai')+'</small></div>';
+    return;
+  }
+
+  list.innerHTML=names.map(client=>{
+    const orders=allOrders[client].sort((a,b)=>b.order_date.localeCompare(a.order_date));
+    const last=fmtDate(orders[0].order_date);
+    return '<div class="client-card" id="cc-'+encodeURIComponent(client)+'">'
+      +'<div class="client-hdr"><div class="client-hdr-left"><div class="client-avatar">'+client.charAt(0).toUpperCase()+'</div><div><div class="client-name">'+esc2(client)+'</div><div class="client-meta">Terakhir: '+last+'</div></div></div>'
+      +'<div class="client-hdr-right"><span class="client-count">'+orders.length+' order</span>'
+      +'<button class="client-del" data-action="del-client" data-client="'+encodeURIComponent(client)+'" title="Hapus klien">&#128465;</button>'
+      +'<span class="client-chevron">&#9660;</span></div></div>'
+      +'<div class="orders-list">'
+      +orders.map(o=>{
+        const sc=statusClass[o.payment_status]||'status-belum';
+        const sl=statusLabel[o.payment_status]||'Belum Bayar';
+        return '<div class="order-row" data-action="open-order" data-id="'+o.id+'">'
+          +'<div class="order-row-left"><div class="order-dot" style="background:'+(o.payment_status==='lunas'?'var(--green)':o.payment_status==='menunggu_konfirmasi'?'var(--yellow)':'var(--red)')+'"></div>'
+          +'<div><div class="order-date">'+fmtDate(o.order_date)+'</div>'
+          +'<div class="order-note">'+getProductSummary(o)+'</div></div></div>'
+          +'<div class="order-row-right">'
+          +'<span class="status-badge '+sc+'">'+sl+'</span>'
+          +'<button class="order-dup" data-action="dup-order" data-id="'+o.id+'" title="Duplikat">&#x2398; Duplikat</button>'
+          +'<button class="order-del" data-action="del-order" data-id="'+o.id+'">&#x2715; Hapus</button>'
+          +'</div></div>';
+      }).join('')
+      +'<div class="add-order-row" data-action="add-order" data-client="'+encodeURIComponent(client)+'">&#xff0b; Tambah order</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function getProductSummary(order){
+  const ps=order.products||[];
+  if(!ps.length)return'Belum ada produk';
+  const n=ps.map(p=>p.name||'–').join(', ');
+  return n.length>50?n.slice(0,50)+'...':n;
+}
+
+// Event delegation
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#clients-list'))return;
+  const btn=e.target.closest('button[data-action],div[data-action="add-order"]');
+  if(btn){
+    e.stopPropagation();
+    const action=btn.dataset.action;
+    const client=btn.dataset.client?decodeURIComponent(btn.dataset.client):'';
+    const id=btn.dataset.id||'';
+    if(action==='del-order')confirmDeleteOrder(id);
+    else if(action==='del-client')confirmDeleteClient(client);
+    else if(action==='dup-order')duplicateOrder(id);
+    else if(action==='add-order')openAddOrderModal(client);
+    return;
+  }
+  const row=e.target.closest('[data-action="open-order"]');
+  if(row&&!e.target.closest('button')){openOrder(row.dataset.id);return;}
+  const hdr=e.target.closest('.client-hdr');
+  if(hdr&&!e.target.closest('button')){const card=hdr.closest('.client-card');if(card)card.classList.toggle('open');}
+});
+
+// ══════════════════════════════════════════════
+// ADMIN: CRUD ORDERS
+// ══════════════════════════════════════════════
+let _pendingClient='';
+
+function openNewOrderModal(){
+  $('inp-client-new').value='';$('inp-date').value=new Date().toISOString().slice(0,10);
+  $('modal-new').classList.add('show');setTimeout(()=>$('inp-client-new').focus(),80);
+}
+function openAddOrderModal(client){
+  _pendingClient=client;
+  $('modal-addorder-sub').textContent='Tambah order untuk: '+client;
+  $('inp-date-add').value=new Date().toISOString().slice(0,10);
+  $('modal-addorder').classList.add('show');
+}
+function closeModal(id){$(id).classList.remove('show');}
+function closeModalIf(e,id){if(e.target.id===id)closeModal(id);}
+
+async function createOrder(){
+  const sel=($('inp-client-select').value||'').trim();
+  const newName=($('inp-client-new').value||'').trim();
+  const client=newName||sel;
+  const date=$('inp-date').value;
+  if(!client){alert('Nama klien wajib diisi.');return;}
+  if(!date){alert('Tanggal wajib diisi.');return;}
+
+  // Find matching client profile by full_name or email
+  const prof=Object.values(allClients).find(p=>
+    p.full_name===client||p.email===client
+  );
+  const clientId=prof?.id||null;
+
+  const{data,error}=await sb.from('orders').insert({
+    client_name:client,
+    client_id:clientId||currentUser.id,
+    order_date:date,
+    global_rate:2600,
+    payment_status:'belum_bayar'
+  }).select().single();
+
+  if(error){alert('Gagal buat order: '+error.message);return;}
+  await sb.from('products').insert({order_id:data.id,name:'Produk 1',sort_order:0});
+  closeModal('modal-new');
+  await loadAdminData();
+  openOrder(data.id);
+}
+
+async function createOrderForClient(){
+  const date=$('inp-date-add').value;
+  if(!date){alert('Tanggal wajib diisi.');return;}
+  const client=_pendingClient;
+  const prof=Object.values(allClients).find(p=>p.full_name===client||p.email===client);
+
+  const{data,error}=await sb.from('orders').insert({
+    client_name:client,
+    client_id:prof?.id||currentUser.id,
+    order_date:date,
+    global_rate:2600,
+    payment_status:'belum_bayar'
+  }).select().single();
+  if(error){alert('Gagal: '+error.message);return;}
+  await sb.from('products').insert({order_id:data.id,name:'Produk 1',sort_order:0});
+  closeModal('modal-addorder');
+  await loadAdminData();
+  openOrder(data.id);
+}
+
+async function confirmDeleteOrder(orderId){
+  if(!confirm('Hapus order ini? Tidak bisa dikembalikan.'))return;
+  // delete photos from storage
+  const{data:ph}=await sb.from('photos').select('storage_path').eq('order_id',orderId);
+  if(ph?.length){await sb.storage.from(BUCKET).remove(ph.map(p=>p.storage_path));}
+  await sb.from('orders').delete().eq('id',orderId);
+  await loadAdminData();
+}
+
+async function confirmDeleteClient(client){
+  const orders=allOrders[client]||[];
+  if(!confirm('Hapus semua '+orders.length+' order untuk "'+client+'"?'))return;
+  for(const o of orders){
+    const{data:ph}=await sb.from('photos').select('storage_path').eq('order_id',o.id);
+    if(ph?.length)await sb.storage.from(BUCKET).remove(ph.map(p=>p.storage_path));
+    await sb.from('orders').delete().eq('id',o.id);
+  }
+  await loadAdminData();
+}
+
+async function duplicateOrder(orderId){
+  const src=Object.values(allOrders).flat().find(o=>o.id===orderId);
+  if(!src)return;
+
+  // fetch full data including photos
+  const{data:srcPhotos}=await sb.from('photos').select('*').eq('order_id',orderId);
+
+  let newDate=new Date().toISOString().slice(0,10);
+  // avoid date collision
+  const existingDates=(allOrders[src.client_name]||[]).map(o=>o.order_date);
+  let counter=1;
+  while(existingDates.includes(newDate)){
+    const d=new Date();d.setDate(d.getDate()+counter);
+    newDate=d.toISOString().slice(0,10);counter++;
+  }
+
+  const{data:newOrder,error}=await sb.from('orders').insert({
+    client_name:src.client_name,client_id:src.client_id,
+    order_date:newDate,global_rate:src.global_rate,payment_status:'belum_bayar'
+  }).select().single();
+  if(!newOrder||error){alert('Gagal duplikat order');return;}
+
+  // Copy products
+  const prods=(src.products||[]).map(p=>({
+    order_id:newOrder.id,
+    name:p.name,harga_yuan:p.harga_yuan,qty_per_dus:p.qty_per_dus,
+    panjang:p.panjang,lebar:p.lebar,tinggi:p.tinggi,
+    biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,
+    biaya_tambahan:p.biaya_tambahan,sort_order:p.sort_order
+  }));
+  let newProds=[];
+  if(prods.length){
+    const{data:inserted}=await sb.from('products').insert(prods).select();
+    newProds=inserted||[];
+  }
+
+  // Copy photos - download and re-upload to new path
+  if(srcPhotos?.length){
+    const oldProds=src.products||[];
+    for(const ph of srcPhotos){
+      try{
+        // Find matching new product by sort_order
+        const oldProd=oldProds.find(p=>p.id===ph.product_id);
+        const newProd=newProds.find(p=>p.sort_order===oldProd?.sort_order);
+        if(!newProd)continue;
+
+        // Download file
+        const{data:fileData}=await sb.storage.from(BUCKET).download(ph.storage_path);
+        if(!fileData)continue;
+
+        // Upload to new path
+        const newPath=newOrder.id+'/'+newProd.id+'/'+ph.photo_type+'/'+Date.now()+'-'+ph.file_name;
+        await sb.storage.from(BUCKET).upload(newPath,fileData,{contentType:'image/jpeg'});
+        await sb.from('photos').insert({
+          order_id:newOrder.id,product_id:newProd.id,
+          photo_type:ph.photo_type,storage_path:newPath,file_name:ph.file_name
+        });
+      }catch(e){console.warn('Photo copy failed:',e);}
+    }
+  }
+
+  await loadAdminData();
+  const card=document.getElementById('cc-'+encodeURIComponent(src.client_name));
+  if(card&&!card.classList.contains('open'))card.classList.add('open');
+  alert('Order berhasil diduplikat ke tanggal '+fmtDate(newDate));
+}
+
+// ══════════════════════════════════════════════
+// ADMIN: CALCULATOR
+// ══════════════════════════════════════════════
+let currentOrderId=null, currentOrder=null, currentProducts=[], currentPhotos=[], globalRate=2600, activeTab=0;
+
+async function openOrder(orderId){
+  currentOrderId=orderId;
+  showScreen('screen-calc');
+  $('exp-bar').style.display='flex';
+
+  // fetch fresh data
+  const{data:order}=await sb.from('orders').select('*').eq('id',orderId).single();
+  const{data:products}=await sb.from('products').select('*').eq('order_id',orderId).order('sort_order');
+  const{data:photos}=await sb.from('photos').select('*').eq('order_id',orderId);
+
+  currentOrder=order;
+  currentProducts=products||[];
+  currentPhotos=photos||[];
+  globalRate=order.global_rate||2600;
+  activeTab=0;
+
+  $('calc-client-input').value=order.client_name;
+  $('calc-date-input').value=order.order_date;
+
+  renderPaymentBar();
+  renderPageContent();
+  bindTopbarEdits();
+}
+
+async function goBack(){
+  await saveCurrentProduct();
+  showScreen('screen-manager');
+  $('exp-bar').style.display='none';
+  await loadAdminData();
+}
+
+function renderPaymentBar(){
+  const bar=$('payment-bar');if(!bar)return;
+  const st=currentOrder?.payment_status||'belum_bayar';
+  const sc=statusClass[st];
+  const sl=statusLabel[st];
+  let actions='';
+  if(st==='belum_bayar'){
+    actions='<span style="font-size:12px;color:var(--text3);">Upload client payment di tab produk</span>';
+  } else if(st==='menunggu_konfirmasi'){
+    actions='<button class="btn-confirm" onclick="confirmPayment()">✓ Konfirmasi Lunas</button>';
+  } else if(st==='lunas'){
+    actions='<button class="btn-unconfirm" onclick="unconfirmPayment()">Batalkan Konfirmasi</button>';
+  }
+  bar.innerHTML='<div class="payment-bar"><div class="payment-bar-left"><span class="payment-label">Status Pembayaran:</span><span class="status-badge '+sc+'">'+sl+'</span></div><div>'+actions+'</div></div>';
+}
+
+async function confirmPayment(){
+  await sb.from('orders').update({payment_status:'lunas',payment_confirmed_at:new Date().toISOString(),payment_confirmed_by:currentUser.id}).eq('id',currentOrderId);
+  currentOrder.payment_status='lunas';renderPaymentBar();
+}
+async function unconfirmPayment(){
+  const hasPay=currentPhotos.some(p=>p.photo_type==='payment');
+  const newStatus=hasPay?'menunggu_konfirmasi':'belum_bayar';
+  await sb.from('orders').update({payment_status:newStatus,payment_confirmed_at:null,payment_confirmed_by:null}).eq('id',currentOrderId);
+  currentOrder.payment_status=newStatus;renderPaymentBar();
+}
+
+function bindTopbarEdits(){
+  const ci=$('calc-client-input'),di=$('calc-date-input');
+  const nci=ci.cloneNode(true);const ndi=di.cloneNode(true);
+  ci.parentNode.replaceChild(nci,ci);di.parentNode.replaceChild(ndi,di);
+  nci.addEventListener('change',async function(){
+    const v=this.value.trim();if(!v||v===currentOrder.client_name)return;
+    await sb.from('orders').update({client_name:v}).eq('id',currentOrderId);
+    currentOrder.client_name=v;
+  });
+  ndi.addEventListener('change',async function(){
+    const v=this.value;if(!v||v===currentOrder.order_date)return;
+    await sb.from('orders').update({order_date:v}).eq('id',currentOrderId);
+    currentOrder.order_date=v;
+  });
+}
+
+// ── TABS ──
+function renderTabs(){
+  $('tabs').innerHTML=currentProducts.map((p,i)=>'<button class="tab-btn '+(i===activeTab?'active':'')+'" onclick="switchTab('+i+')">'+esc2(p.name||'Produk '+(i+1))+'</button>').join('')
+    +'<button class="add-tab" onclick="addProduct()">&#xff0b; Produk baru</button>';
+}
+
+async function switchTab(i){
+  await saveCurrentProduct();
+  activeTab=i;renderPageContent();
+}
+
+async function addProduct(){
+  await saveCurrentProduct();
+  const{data}=await sb.from('products').insert({order_id:currentOrderId,name:'Produk Baru',sort_order:currentProducts.length}).select().single();
+  if(data)currentProducts.push(data);
+  activeTab=currentProducts.length-1;
+  renderPageContent();
+}
+
+async function deleteProduct(i){
+  if(currentProducts.length===1)return;
+  const p=currentProducts[i];
+  // delete photos
+  const ph=currentPhotos.filter(ph=>ph.product_id===p.id);
+  if(ph.length)await sb.storage.from(BUCKET).remove(ph.map(x=>x.storage_path));
+  await sb.from('photos').delete().eq('product_id',p.id);
+  await sb.from('products').delete().eq('id',p.id);
+  currentProducts.splice(i,1);
+  currentPhotos=currentPhotos.filter(ph=>ph.product_id!==p.id);
+  if(activeTab>=currentProducts.length)activeTab=currentProducts.length-1;
+  renderPageContent();
+}
+
+// ── SAVE PRODUCT ──
+let _saveTimer=null;
+function scheduleSave(){clearTimeout(_saveTimer);_saveTimer=setTimeout(()=>saveCurrentProduct(),800);}
+
+async function saveCurrentProduct(){
+  const p=currentProducts[activeTab];if(!p)return;
+  await sb.from('products').update({
+    name:p.name,harga_yuan:p.harga_yuan,qty_per_dus:p.qty_per_dus,
+    panjang:p.panjang,lebar:p.lebar,tinggi:p.tinggi,
+    biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,biaya_tambahan:p.biaya_tambahan
+  }).eq('id',p.id);
+  await sb.from('orders').update({global_rate:globalRate}).eq('id',currentOrderId);
+}
+
+// ── RENDER PAGE ──
+function renderPageContent(){renderTabs();renderPage0(activeTab);}
+
+function updateResults(i){
+  const p=currentProducts[i];if(!p)return;
+  const r=calc(p);
+  const g=id=>$(id);if(!g('bd-barang'))return;
+  g('bd-barang-l').textContent='Harga barang ('+(p.harga_yuan||0)+' x '+(p.qty_per_dus||0)+' x Rp '+fmt(globalRate)+')';
+  g('bd-barang').textContent='Rp '+fmt(r.hargaBarang);
+  g('bd-lokal-l').textContent='Fee kirim ke forwarder ('+(p.biaya_lokal_yuan||0)+' yuan)';
+  g('bd-lokal').textContent='Rp '+fmt(r.biayaLokal);
+  g('bd-tambahan').textContent='Rp '+fmt(r.tambahan);
+  g('bd-total-dus').textContent='Rp '+fmt(r.totalProdukDus);
+  updateOrderTotal();
+}
+
+function updateOrderTotal(){
+  let totalProduk=0,totalOngkir=0;
+  currentProducts.forEach((p,i)=>{
+    const r=calc(p);totalProduk+=r.totalProdukDus;
+    const el=$('ord-row-subtotal-'+i);if(el)el.textContent='Rp '+fmt(r.totalProdukDus);
+    totalOngkir+=calcCbm(p)*(p.biaya_cbm||0);
+  });
+  const tk=$('ord-total-produk');if(tk)tk.textContent='Rp '+fmt(totalProduk);
+  const to=$('ord-total-ongkir');if(to)to.textContent='Rp '+fmt(totalOngkir);
+  const tt=$('ord-total-keseluruhan');if(tt)tt.textContent='Rp '+fmt(totalProduk+totalOngkir);
+}
+
+function renderPage0(i){
+  const p=currentProducts[i];if(!p)return;
+  const r=calc(p);
+  const ordRows=currentProducts.map((pp,ii)=>'<div class="brow"><span style="font-weight:600;color:var(--text)">'+esc2(pp.name||'Produk '+(ii+1))+'</span><span class="bval" id="ord-row-subtotal-'+ii+'">Rp '+fmt(calc(pp).totalProdukDus)+'</span></div>').join('');
+
+  $('page0').innerHTML=
+  '<div class="two-col-layout">'
+  +'<div class="col-left">'
+  +'<div class="card"><div class="card-hdr"><input class="pname-input" id="ip-name" value="'+esc2(p.name||'')+'" placeholder="Nama produk..."/>'+(currentProducts.length>1?'<button class="del-btn" onclick="deleteProduct('+i+')">x Hapus</button>':'')+'</div><div class="card-body">'
+
+  // photos toggle
+  +'<div class="photo-toggle-wrap"><div class="photo-toggle-hdr" onclick="togglePhoto(\'photo-prod-'+i+'\',\'arr-prod-'+i+'\')"><span class="photo-label">&#128196; Document Barang</span><span class="toggle-arrow" id="arr-prod-'+i+'">&#9658;</span></div><div class="photo-section" id="photo-prod-'+i+'" style="display:none;"><div id="pz-'+i+'-product"></div></div></div>'
+  +'<div class="photo-toggle-wrap"><div class="photo-toggle-hdr" onclick="togglePhoto(\'photo-pay-'+i+'\',\'arr-pay-'+i+'\')"><span class="photo-label">&#128179; Client Payment</span><span class="toggle-arrow" id="arr-pay-'+i+'">&#9658;</span></div><div class="photo-section" id="photo-pay-'+i+'" style="display:none;"><div id="pz-'+i+'-payment"></div></div></div>'
+
+  +'<div class="slabel">Info Barang</div><div class="g2" style="margin-bottom:14px;">'
+  +'<div class="field"><label>Harga per unit (Yuan)</label><input type="text" inputmode="decimal" id="ip-hargaYuan" value="'+toV(p.harga_yuan)+'" placeholder="2.20"/><span class="conv" id="conv-yuan">= Rp '+fmt((p.harga_yuan||0)*globalRate)+' / unit</span></div>'
+  +'<div class="field"><label>Quantity (pcs)</label><input type="text" inputmode="numeric" id="ip-qtyPerDus" value="'+toV(p.qty_per_dus)+'" placeholder="400"/></div></div>'
+
+  +'<div class="slabel">Pengiriman Lokal China</div><div class="g2" style="margin-bottom:14px;">'
+  +'<div class="field"><label>Biaya kirim ke forwarder (yuan)</label><input type="text" inputmode="decimal" id="ip-biayaLokal" value="'+toV(p.biaya_lokal_yuan)+'" placeholder="5"/><span class="conv" id="conv-lokal">= Rp '+fmt((p.biaya_lokal_yuan||0)*globalRate)+'</span></div>'
+  +'<div class="field"><label>Biaya tambahan (Rp)</label><input type="text" inputmode="numeric" id="ip-biayaTambahan" value="'+toV(p.biaya_tambahan)+'" placeholder="0"/></div></div>'
+
+  +'<div class="slabel">Fee Forwarder</div><div class="g3" style="margin-bottom:14px;">'
+  +'<div class="field"><label>Panjang (cm)</label><input type="text" inputmode="decimal" id="ip-panjang" value="'+toV(p.panjang)+'" placeholder="45"/></div>'
+  +'<div class="field"><label>Lebar (cm)</label><input type="text" inputmode="decimal" id="ip-lebar" value="'+toV(p.lebar)+'" placeholder="45"/></div>'
+  +'<div class="field"><label>Tinggi (cm)</label><input type="text" inputmode="decimal" id="ip-tinggi" value="'+toV(p.tinggi)+'" placeholder="47"/></div></div>'
+  +'<div class="field" style="max-width:240px;margin-bottom:0;"><label>Biaya per CBM (Rp)</label><input type="text" inputmode="numeric" id="ip-biayaCbm" value="'+toV(p.biaya_cbm)+'" placeholder="5000000"/><span class="hint" id="hint-cbm">CBM auto: '+calcCbm(p).toFixed(4)+' m3</span></div>'
+  +'</div></div>'
+
+  // rincian biaya
+  +'<div class="res-wrap"><div class="bkd"><div class="bkd-title">Rincian Biaya</div>'
+  +'<div class="brow"><span id="bd-barang-l">Harga barang</span><span class="bval" id="bd-barang">Rp '+fmt(r.hargaBarang)+'</span></div>'
+  +'<div class="brow"><span id="bd-lokal-l">Fee kirim ke forwarder</span><span class="bval" id="bd-lokal">Rp '+fmt(r.biayaLokal)+'</span></div>'
+  +'<div class="brow"><span>Biaya tambahan</span><span class="bval" id="bd-tambahan">Rp '+fmt(r.tambahan)+'</span></div>'
+  +'<div class="brow tot"><span>Total harga barang</span><span class="bval" id="bd-total-dus">Rp '+fmt(r.totalProdukDus)+'</span></div>'
+  +'</div></div>'
+  +'</div>' // end col-left
+
+  // right col
+  +'<div class="col-right">'
+  +'<div class="rate-bar-inline"><div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">&#127464;&#127475; Rate Yuan</div>'
+  +'<div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:var(--text2);white-space:nowrap;">1 &#165; = Rp</label>'
+  +'<input class="rate-input" type="text" inputmode="decimal" id="global-rate" value="'+globalRate+'" placeholder="2600" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 14px;font-size:16px;font-family:JetBrains Mono,monospace;font-weight:700;color:var(--accent);width:110px;text-align:right;outline:none;"/>'
+  +'</div></div>'
+
+  +'<div class="res-wrap" style="position:sticky;top:80px;"><div class="bkd">'
+  +'<div class="bkd-title" style="color:var(--accent);">Total Seluruh Pesanan</div>'
+  +ordRows
+  +'<div class="brow tot" style="margin-top:8px;"><span>Total Seluruh Pesanan</span><span class="bval" id="ord-total-produk">Rp '+fmt(currentProducts.reduce((s,pp)=>s+calc(pp).totalProdukDus,0))+'</span></div>'
+  +'<div style="margin-top:14px;margin-bottom:8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);">Fee Forwarder</div>'
+  +currentProducts.map(pp=>'<div class="brow" style="font-size:11px;"><span style="color:var(--text3);">'+esc2(pp.name||'Produk')+' · '+calcCbm(pp).toFixed(4)+' m3 × Rp '+fmt(pp.biaya_cbm||0)+'</span><span class="bval" style="font-size:11px;">Rp '+fmt(calcCbm(pp)*(pp.biaya_cbm||0))+'</span></div>').join('')
+  +'<div class="brow tot"><span>Total Fee Forwarder</span><span class="bval" id="ord-total-ongkir">Rp '+fmt(currentProducts.reduce((s,pp)=>s+calcCbm(pp)*(pp.biaya_cbm||0),0))+'</span></div>'
+  +'<div class="brow" style="padding:12px 0 4px;border-bottom:none;"><span style="font-size:13px;font-weight:700;color:var(--text);">Total Seluruh Pesanan incl. Fee Forwarder</span><span class="bval" id="ord-total-keseluruhan" style="font-size:15px;color:var(--accent);font-weight:700;">Rp '+fmt(currentProducts.reduce((s,pp)=>{const r=calc(pp);return s+r.totalProdukDus+calcCbm(pp)*(pp.biaya_cbm||0);},0))+'</span></div>'
+  +'</div></div>'
+  +'</div></div>'; // end col-right, two-col-layout
+
+  renderPhotoGrid(i,'product');renderPhotoGrid(i,'payment');
+  bindInputs(i);
+}
+
+function togglePhoto(secId,arrId){
+  const sec=$(secId);if(!sec)return;
+  const hidden=sec.style.display==='none';
+  sec.style.display=hidden?'block':'none';
+  const arr=$(arrId);if(arr)arr.textContent=hidden?'▾':'▸';
+}
+
+function bindInputs(i){
+  const p=currentProducts[i];if(!p)return;
+  const fields=[
+    ['ip-hargaYuan','harga_yuan'],['ip-qtyPerDus','qty_per_dus'],
+    ['ip-biayaLokal','biaya_lokal_yuan'],['ip-biayaTambahan','biaya_tambahan'],
+    ['ip-panjang','panjang'],['ip-lebar','lebar'],['ip-tinggi','tinggi'],
+    ['ip-biayaCbm','biaya_cbm']
+  ];
+  fields.forEach(([id,key])=>{
+    const el=$(id);if(!el)return;
+    el.addEventListener('input',()=>{
+      p[key]=parseNum(el.value);
+      updateResults(i);
+      if(id==='ip-biayaLokal'){const c=$('conv-lokal');if(c)c.textContent='= Rp '+fmt((parseNum(el.value)||0)*globalRate);}
+      if(id==='ip-hargaYuan'){const c=$('conv-yuan');if(c)c.textContent='= Rp '+fmt((parseNum(el.value)||0)*globalRate)+' / unit';}
+      if(['ip-panjang','ip-lebar','ip-tinggi'].includes(id)){const h=$('hint-cbm');if(h)h.textContent='CBM auto: '+calcCbm(p).toFixed(4)+' m3';}
+      scheduleSave();
+    });
+  });
+  const ne=$('ip-name');if(ne)ne.addEventListener('input',function(){p.name=this.value;renderTabs();scheduleSave();});
+  const gr=$('global-rate');if(gr)gr.addEventListener('input',function(){globalRate=parseNum(this.value)||2600;renderPageContent();scheduleSave();});
+}
+
+// ── PHOTOS ──
+function renderPhotoGrid(pIdx,type){
+  const pId=currentProducts[pIdx]?.id;
+  const zoneId=type==='product'?'pz-'+pIdx+'-product':'pz-'+pIdx+'-payment';
+  const zone=$(zoneId);if(!zone)return;
+  const photos=currentPhotos.filter(ph=>ph.product_id===pId&&ph.photo_type===type);
+  if(!photos.length){
+    zone.innerHTML='<div class="drop-zone"><input type="file" accept="image/*" multiple onchange="uploadPhotos('+pIdx+',\''+type+'\',this.files)"/><div class="dz-icon">'+(type==='product'?'📷':'🧾')+'</div><div class="dz-txt"><div class="dt1">'+(type==='product'?'Upload document barang':'Upload client payment')+'</div><div class="dt2">JPG/PNG/WEBP</div></div></div>';
+  }else{
+    zone.innerHTML='<div class="photo-grid">'+photos.map(ph=>{const url=sb.storage.from(BUCKET).getPublicUrl(ph.storage_path).data.publicUrl;return'<div class="thumb"><img src="'+url+'" onclick="openImageModal(\''+url+'\')"/><button class="rx" onclick="deletePhoto(\''+ph.id+'\',\''+ph.storage_path+'\',\''+pIdx+'\',\''+type+'\')">x</button></div>';}).join('')+'<div class="add-more"><input type="file" accept="image/*" multiple onchange="uploadPhotos('+pIdx+',\''+type+'\',this.files)"/>+</div></div>';
+  }
+}
+
+async function uploadPhotos(pIdx,type,files){
+  const p=currentProducts[pIdx];if(!p)return;
+  for(const f of Array.from(files)){
+    // Compress
+    const compressed=await compressImage(f);
+    const path=currentOrderId+'/'+p.id+'/'+type+'/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9.-]/g,'_');
+    const{error:upErr}=await sb.storage.from(BUCKET).upload(path,compressed,{contentType:'image/jpeg'});
+    if(upErr){alert('Upload gagal: '+upErr.message);continue;}
+    const{data:ph}=await sb.from('photos').insert({order_id:currentOrderId,product_id:p.id,photo_type:type,storage_path:path,file_name:f.name}).select().single();
+    if(ph){
+      currentPhotos.push(ph);
+      // if payment photo uploaded, update status
+      if(type==='payment'&&currentOrder.payment_status==='belum_bayar'){
+        await sb.from('orders').update({payment_status:'menunggu_konfirmasi'}).eq('id',currentOrderId);
+        currentOrder.payment_status='menunggu_konfirmasi';
+        renderPaymentBar();
+      }
+    }
+  }
+  renderPhotoGrid(pIdx,type);
+}
+
+async function deletePhoto(photoId,path,pIdx,type){
+  await sb.storage.from(BUCKET).remove([path]);
+  await sb.from('photos').delete().eq('id',photoId);
+  currentPhotos=currentPhotos.filter(ph=>ph.id!==photoId);
+  // if no more payment photos, revert status
+  const hasPay=currentPhotos.some(ph=>ph.photo_type==='payment');
+  if(!hasPay&&currentOrder.payment_status==='menunggu_konfirmasi'){
+    await sb.from('orders').update({payment_status:'belum_bayar'}).eq('id',currentOrderId);
+    currentOrder.payment_status='belum_bayar';renderPaymentBar();
+  }
+  renderPhotoGrid(parseInt(pIdx),type);
+}
+
+async function compressImage(file){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=900;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(blob=>resolve(blob),'image/jpeg',0.78);
+      };img.src=e.target.result;
+    };reader.readAsDataURL(file);
+  });
+}
+
+function openImageModal(src){$('img-modal-preview').src=src;$('img-modal').classList.add('show');}
+function closeImageModal(e){if(e.target.id==='img-modal'||e.target.classList.contains('img-modal-close'))$('img-modal').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('img-modal')?.classList.remove('show');closeModal('modal-new');closeModal('modal-addorder');}});
+
+// ══════════════════════════════════════════════
+// CLIENT VIEW
+// ══════════════════════════════════════════════
+async function loadClientOrders(){
+  const{data:orders}=await sb.from('orders').select('*,products(*),photos(*)').eq('client_id',currentUser.id).order('order_date',{ascending:false});
+  renderClientView(orders||[]);
+}
+
+function renderClientView(orders){
+  const list=$('client-orders-list');
+  if(!orders.length){
+    list.innerHTML='<div class="empty-state"><div class="ei">📦</div><p>Belum ada order</p><small>Order Anda akan muncul di sini</small></div>';
+    return;
+  }
+  list.innerHTML=orders.map(o=>{
+    const st=o.payment_status||'belum_bayar';
+    const sc=statusClass[st];
+    const sl=statusLabel[st];
+    const products=o.products||[];
+    const allPhotos=o.photos||[];
+    const rate=o.global_rate||2600;
+
+    // Per product rincian
+    const prodRows=products.map(p=>{
+      const r=calc({...p,harga_yuan:p.harga_yuan,qty_per_dus:p.qty_per_dus,panjang:p.panjang,lebar:p.lebar,tinggi:p.tinggi,biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,biaya_tambahan:p.biaya_tambahan});
+      const docPhotos=allPhotos.filter(ph=>ph.product_id===p.id&&ph.photo_type==='product');
+      const payPhotos=allPhotos.filter(ph=>ph.product_id===p.id&&ph.photo_type==='payment');
+      const cbmD=calcCbm(p);
+
+      const photoSection=(arr,label)=>arr.length?
+        '<div style="margin-top:10px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">'+label+'</div>'
+        +'<div class="photo-grid">'+arr.map(ph=>{const url=sb.storage.from(BUCKET).getPublicUrl(ph.storage_path).data.publicUrl;return'<img class="client-photo-img" src="'+url+'" onclick="openImageModal(\''+url+'\')">';}).join('')+'</div></div>':'';
+
+      return '<div class="client-product-row">'
+        +'<div class="client-product-name">'+esc2(p.name||'Produk')+'</div>'
+        +'<div class="client-detail-row"><span>Harga barang ('+p.harga_yuan+' × '+p.qty_per_dus+' × Rp '+fmt(rate)+')</span><span class="client-detail-val">Rp '+fmt(r.hargaBarang)+'</span></div>'
+        +'<div class="client-detail-row"><span>Fee kirim ke forwarder</span><span class="client-detail-val">Rp '+fmt(r.biayaLokal)+'</span></div>'
+        +'<div class="client-detail-row"><span>Biaya tambahan</span><span class="client-detail-val">Rp '+fmt(r.tambahan)+'</span></div>'
+        +'<div class="client-detail-row" style="font-weight:600;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;"><span>Total harga barang</span><span class="client-detail-val" style="color:var(--accent);">Rp '+fmt(r.totalProdukDus)+'</span></div>'
+        +'<div class="client-detail-row"><span>Fee Forwarder ('+cbmD.toFixed(4)+' m3 × Rp '+fmt(p.biaya_cbm||0)+')</span><span class="client-detail-val">Rp '+fmt(cbmD*(p.biaya_cbm||0))+'</span></div>'
+        +photoSection(docPhotos,'Document Barang')
+        +photoSection(payPhotos,'Client Payment')
+        +'</div>';
+    }).join('');
+
+    const totalProduk=products.reduce((s,p)=>s+calc(p).totalProdukDus,0);
+    const totalFee=products.reduce((s,p)=>s+calcCbm(p)*(p.biaya_cbm||0),0);
+
+    return '<div class="client-order-card">'
+      +'<div class="client-order-hdr" onclick="toggleClientOrder(this)">'
+      +'<div><div class="client-order-title">Order '+fmtDate(o.order_date)+'</div>'
+      +'<div class="client-order-date" style="margin-top:3px;">Rate: 1 Yuan = Rp '+fmt(rate)+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:10px;">'
+      +'<span class="status-badge '+sc+'">'+sl+'</span>'
+      +'<span class="client-order-chevron">▾</span>'
+      +'</div>'
+      +'</div>'
+      +'<div class="client-order-body">'
+      +prodRows
+      +'<div class="client-total-section">'
+      +'<div class="client-detail-row"><span style="font-weight:600;">Total Seluruh Pesanan</span><span class="client-detail-val">Rp '+fmt(totalProduk)+'</span></div>'
+      +'<div class="client-detail-row"><span style="font-weight:600;">Total Fee Forwarder</span><span class="client-detail-val">Rp '+fmt(totalFee)+'</span></div>'
+      +'<div class="client-detail-row" style="font-weight:700;font-size:14px;color:var(--text);padding-top:8px;border-top:1px solid var(--border2);margin-top:4px;">'
+      +'<span>Total Seluruh Pesanan incl. Fee Forwarder</span>'
+      +'<span class="client-detail-val" style="color:var(--accent);font-size:15px;">Rp '+fmt(totalProduk+totalFee)+'</span>'
+      +'</div></div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function toggleClientOrder(hdr){
+  const body=hdr.nextElementSibling;
+  const chevron=hdr.querySelector('.client-order-chevron');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(chevron)chevron.style.transform=isOpen?'':'rotate(180deg)';
+}
+
+// ══════════════════════════════════════════════
+// PDF EXPORT
+// ══════════════════════════════════════════════
+async function renderBlock(html){
+  const c=$('pdf-render');
+  c.innerHTML='<div style="font-family:Inter,sans-serif;color:#f0ede8;background:#0f0e0d;width:754px;padding:0">'+html+'</div>';
+  await new Promise(r=>setTimeout(r,120));
+  return html2canvas(c,{scale:2,useCORS:true,backgroundColor:'#0f0e0d',logging:false});
+}
+function addCanvasToPdf(pdf,canvas,curY,pH,pW,mg){
+  const uw=pW-mg*2,uh=pH-mg*2;const imgH=(canvas.height/canvas.width)*uw;const imgD=canvas.toDataURL('image/jpeg',.9);
+  if(curY+imgH<=pH-mg){pdf.addImage(imgD,'JPEG',mg,curY,uw,imgH);return curY+imgH+5;}
+  if(imgH>uh){const sc=canvas.width/uw;let spy=0,first=true;while(spy<canvas.height){const avMm=first?(pH-mg-curY):uh;if(avMm<8){pdf.addPage();curY=mg;first=false;continue;}const shpx=Math.min(avMm*sc,canvas.height-spy);const shmm=shpx/sc;const tmp=document.createElement('canvas');tmp.width=canvas.width;tmp.height=shpx;tmp.getContext('2d').drawImage(canvas,0,spy,canvas.width,shpx,0,0,canvas.width,shpx);pdf.addImage(tmp.toDataURL('image/jpeg',.9),'JPEG',mg,first?curY:mg,uw,shmm);spy+=shpx;curY=mg+shmm;if(spy<canvas.height){pdf.addPage();curY=mg;}first=false;}return curY+5;}
+  pdf.addPage();pdf.addImage(imgD,'JPEG',mg,mg,uw,imgH);return mg+imgH+5;
+}
+
+const pdfRow=(l,v,bold=false,orange=false)=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;"><span style="color:'+(bold?'#f0ede8':'#a89f94')+';font-weight:'+(bold?700:400)+';">'+l+'</span><span style="font-family:monospace;color:'+(orange?'#2563eb':'#f0ede8')+';font-weight:'+(bold?700:400)+';">Rp '+v+'</span></div>';
+
+async function exportAllPDF(){
+  const btn=$('exp-btn'),toast=$('toast');btn.classList.add('loading');
+  const setLabel=t=>btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> '+t;
+  try{
+    await saveCurrentProduct();
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pW=pdf.internal.pageSize.getWidth(),pH=pdf.internal.pageSize.getHeight(),mg=12;let cy=mg;
+
+    setLabel('Header...');
+    const st=currentOrder?.payment_status||'belum_bayar';
+    const hHtml='<div style="padding:20px 28px 16px;border-bottom:2px solid rgba(37,99,235,.4);display:flex;justify-content:space-between;align-items:flex-end;">'
+      +'<div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;margin-bottom:5px;">China Sourcing Calculator</div>'
+      +'<div style="font-size:18px;font-weight:700;color:#f0ede8;">'+esc2(currentOrder.client_name)+'</div>'
+      +'<div style="font-size:12px;color:#6b6158;margin-top:3px;">Order: '+fmtDate(currentOrder.order_date)+' · Rate: 1 Yuan = Rp '+fmt(globalRate)+'</div></div>'
+      +'<div style="text-align:right;"><div style="font-size:9px;color:#6b6158;margin-bottom:4px;">Status Pembayaran</div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+(st==='lunas'?'#16a34a':st==='menunggu_konfirmasi'?'#ffd166':'#ff6b6b')+';">'+statusLabel[st]+'</div></div>'
+      +'</div>';
+    cy=addCanvasToPdf(pdf,await renderBlock(hHtml),cy,pH,pW,mg);
+
+    for(let i=0;i<currentProducts.length;i++){
+      const p=currentProducts[i];const r=calc(p);
+      setLabel('Produk '+(i+1)+'/'+currentProducts.length+'...');
+      const prodPhotos=currentPhotos.filter(ph=>ph.product_id===p.id&&ph.photo_type==='product');
+      const payPhotos=currentPhotos.filter(ph=>ph.product_id===p.id&&ph.photo_type==='payment');
+
+      const photoHtml=async(arr,label)=>{
+        if(!arr.length)return'';
+        const imgs=await Promise.all(arr.map(async ph=>{
+          const url=sb.storage.from(BUCKET).getPublicUrl(ph.storage_path).data.publicUrl;
+          return'<img src="'+url+'" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.08);" crossorigin="anonymous"/>';
+        }));
+        return'<div style="margin-bottom:10px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#6b6158;margin-bottom:6px;">'+label+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+imgs.join('')+'</div></div>';
+      };
+
+      const ph1=await photoHtml(prodPhotos,'Document Barang');
+      const ph2=await photoHtml(payPhotos,'Client Payment');
+
+      const cardHtml='<div style="padding:6px 28px;">'
+        +'<div style="background:#181614;border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;">'
+        +'<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center;">'
+        +'<span style="font-size:14px;font-weight:700;color:#f0ede8;">'+esc2(p.name||'Produk '+(i+1))+'</span>'
+        +'<span style="font-size:10px;color:#6b6158;background:#2a2520;border-radius:100px;padding:2px 10px;">Produk '+(i+1)+'</span></div>'
+        +'<div style="padding:14px 18px;">'+ph1+ph2
+        +'<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b6158;margin-bottom:8px;">Rincian Biaya</div>'
+        +pdfRow('Harga barang ('+p.harga_yuan+' × '+p.qty_per_dus+' × Rp '+fmt(globalRate)+')',fmt(r.hargaBarang))
+        +pdfRow('Fee kirim ke forwarder ('+(p.biaya_lokal_yuan||0)+' yuan)',fmt(r.biayaLokal))
+        +pdfRow('Biaya tambahan',fmt(r.tambahan))
+        +'<div style="display:flex;justify-content:space-between;padding:7px 0 0;border-top:1px solid rgba(37,99,235,.3);margin-top:4px;">'
+        +'<span style="font-size:12px;font-weight:700;color:#f0ede8;">Total harga barang</span>'
+        +'<span style="font-family:monospace;font-weight:700;color:#2563eb;font-size:13px;">Rp '+fmt(r.totalProdukDus)+'</span></div>'
+        +'</div></div></div>';
+      cy=addCanvasToPdf(pdf,await renderBlock(cardHtml),cy,pH,pW,mg);
+    }
+
+    setLabel('Total...');
+    let totalProduk=0,totalFee=0;
+    currentProducts.forEach(p=>{const r=calc(p);totalProduk+=r.totalProdukDus;totalFee+=calcCbm(p)*(p.biaya_cbm||0);});
+    const totHtml='<div style="padding:6px 28px;">'
+      +'<div style="background:#181614;border:1px solid rgba(37,99,235,.3);border-radius:12px;overflow:hidden;">'
+      +'<div style="padding:12px 18px;border-bottom:1px solid rgba(37,99,235,.2);"><span style="font-size:13px;font-weight:700;color:#2563eb;">Total Seluruh Pesanan</span></div>'
+      +'<div style="padding:14px 18px;">'
+      +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#6b6158;margin-bottom:8px;">Per Produk</div>'
+      +currentProducts.map(p=>pdfRow(p.name||'Produk',fmt(calc(p).totalProdukDus))).join('')
+      +'<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid rgba(255,255,255,.08);margin-top:4px;"><span style="font-size:12px;font-weight:700;color:#f0ede8;">Total Seluruh Pesanan</span><span style="font-family:monospace;font-weight:700;color:#2563eb;font-size:13px;">Rp '+fmt(totalProduk)+'</span></div>'
+      +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#6b6158;margin:12px 0 8px;">Fee Forwarder</div>'
+      +currentProducts.map(p=>pdfRow(esc2(p.name||'Produk')+' · '+calcCbm(p).toFixed(4)+' m3',fmt(calcCbm(p)*(p.biaya_cbm||0)))).join('')
+      +'<div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid rgba(255,255,255,.08);margin-top:4px;"><span style="font-size:12px;font-weight:700;color:#f0ede8;">Total Fee Forwarder</span><span style="font-family:monospace;font-weight:700;color:#2563eb;font-size:13px;">Rp '+fmt(totalFee)+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:12px 0 4px;border-top:2px solid rgba(37,99,235,.4);margin-top:6px;"><span style="font-size:14px;font-weight:700;color:#f0ede8;">Total Seluruh Pesanan incl. Fee Forwarder</span><span style="font-family:monospace;font-weight:700;color:#16a34a;font-size:16px;">Rp '+fmt(totalProduk+totalFee)+'</span></div>'
+      +'</div></div></div>';
+    cy=addCanvasToPdf(pdf,await renderBlock(totHtml),cy,pH,pW,mg);
+
+    pdf.save('sourcing-'+currentOrder.client_name.replace(/\s+/g,'-')+'-'+currentOrder.order_date+'.pdf');
+    toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3500);
+  }catch(e){alert('Gagal export: '+e.message);console.error(e);}
+  $('pdf-render').innerHTML='';btn.classList.remove('loading');
+  btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF';
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+async function init(){
+  // Sembunyikan loading screen segera
+  const loadingEl=$('screen-loading');
+  if(loadingEl)loadingEl.style.display='none';
+  
+  try{
+    const sessionPromise=sb.auth.getSession();
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('Koneksi timeout')),8000));
+    const{data:{session}}=await Promise.race([sessionPromise,timeout]);
+    if(session?.user){
+      await initUser(session.user);
+    } else {
+      showScreen('screen-login');
+    }
+  }catch(e){
+    console.error('Init error:',e);
+    showScreen('screen-login');
+  }
+  ['inp-email','inp-password'].forEach(id=>{
+    $(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  });
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
+}else{
+  init();
+}
+</script>
+</body>
+</html>
