@@ -371,6 +371,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="calc-topbar-info">
         <input class="edit-client-input" id="calc-client-input" value="-" placeholder="Nama klien..."/>
         <input class="edit-date-input" id="calc-date-input" type="date" value=""/>
+        <input class="edit-date-input" id="calc-resi-input" type="text" placeholder="No. Resi..." style="width:200px;margin-top:4px;"/>
+        <input class="edit-date-input" id="calc-forwarder-input" type="text" placeholder="Alamat forwarder..." style="width:100%;margin-top:4px;"/>
       </div>
       <div class="calc-topbar-right" id="calc-topbar-right"></div>
     </div>
@@ -503,7 +505,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 const esc2=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
 const fmtDate=dk=>{try{const[y,m,d]=dk.split('-');const mn=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];return parseInt(d)+' '+mn[parseInt(m)-1]+' '+y;}catch{return dk;}};
-const calcCbm=p=>(p.panjang*p.lebar*p.tinggi)/1000000;
+const calcCbm=p=>((p.panjang*p.lebar*p.tinggi)/1000000)*(p.jumlah_dus||1);
 const statusLabel={belum_bayar:'⬜ Pending',menunggu_konfirmasi:'🟡 Pay',lunas:'🟢 Pay ✓'};
 const statusClass={belum_bayar:'status-belum',menunggu_konfirmasi:'status-menunggu',lunas:'status-lunas'};
 
@@ -742,7 +744,7 @@ function renderManager(){
         return '<div class="order-row" data-action="open-order" data-id="'+o.id+'">'
           +'<div class="order-row-left"><div class="order-dot" style="background:'+(o.payment_status==='lunas'?'var(--green)':o.payment_status==='menunggu_konfirmasi'?'var(--yellow)':'var(--red)')+'"></div>'
           +'<div><div class="order-date">'+fmtDate(o.order_date)+'</div>'
-          +'<div class="order-note">'+getProductSummary(o)+'</div></div></div>'
+          +'<div class="order-note">'+getProductSummary(o)+(o.nomor_resi?'<span style="margin-left:8px;font-size:10px;background:var(--od);color:var(--accent);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-weight:600;">📦 '+esc2(o.nomor_resi)+'</span>':'')+'</div></div></div>'
           +'<div class="order-row-right">'
           +'<span class="status-badge '+sc+'">'+sl+'</span>'
           +'<button class="order-dup" data-action="dup-order" data-id="'+o.id+'" title="Duplikat">&#x2398; Duplikat</button>'
@@ -897,7 +899,7 @@ async function duplicateOrder(orderId){
     name:p.name,harga_yuan:p.harga_yuan,qty_per_dus:p.qty_per_dus,
     panjang:p.panjang,lebar:p.lebar,tinggi:p.tinggi,
     biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,
-    biaya_tambahan:p.biaya_tambahan,sort_order:p.sort_order
+    biaya_tambahan:p.biaya_tambahan,sort_order:p.sort_order,jumlah_dus:p.jumlah_dus
   }));
   let newProds=[];
   if(prods.length){
@@ -959,6 +961,8 @@ async function openOrder(orderId){
 
   $('calc-client-input').value=order.client_name;
   $('calc-date-input').value=order.order_date;
+  $('calc-resi-input').value=order.nomor_resi||'';
+  $('calc-forwarder-input').value=order.alamat_forwarder||'';
 
   renderPaymentBar();
   renderPageContent();
@@ -1013,6 +1017,20 @@ function bindTopbarEdits(){
     await sb.from('orders').update({order_date:v}).eq('id',currentOrderId);
     currentOrder.order_date=v;
   });
+  const resi=$('calc-resi-input');
+  const nresi=resi.cloneNode(true);resi.parentNode.replaceChild(nresi,resi);
+  nresi.addEventListener('change',async function(){
+    const v=this.value.trim();
+    await sb.from('orders').update({nomor_resi:v}).eq('id',currentOrderId);
+    currentOrder.nomor_resi=v;
+  });
+  const fwd=$('calc-forwarder-input');
+  const nfwd=fwd.cloneNode(true);fwd.parentNode.replaceChild(nfwd,fwd);
+  nfwd.addEventListener('change',async function(){
+    const v=this.value.trim();
+    await sb.from('orders').update({alamat_forwarder:v}).eq('id',currentOrderId);
+    currentOrder.alamat_forwarder=v;
+  });
 }
 
 // ── TABS ──
@@ -1057,7 +1075,8 @@ async function saveCurrentProduct(){
   await sb.from('products').update({
     name:p.name,harga_yuan:p.harga_yuan,qty_per_dus:p.qty_per_dus,
     panjang:p.panjang,lebar:p.lebar,tinggi:p.tinggi,
-    biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,biaya_tambahan:p.biaya_tambahan
+    biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,biaya_tambahan:p.biaya_tambahan,
+    jumlah_dus:p.jumlah_dus
   }).eq('id',p.id);
   await sb.from('orders').update({global_rate:globalRate}).eq('id',currentOrderId);
 }
@@ -1112,11 +1131,13 @@ function renderPage0(i){
   +'<div class="field"><label>Biaya kirim ke forwarder (yuan)</label><input type="text" inputmode="decimal" id="ip-biayaLokal" value="'+toV(p.biaya_lokal_yuan)+'" placeholder="5"/><span class="conv" id="conv-lokal">= Rp '+fmt((p.biaya_lokal_yuan||0)*globalRate)+'</span></div>'
   +'<div class="field"><label>Biaya tambahan (Rp)</label><input type="text" inputmode="numeric" id="ip-biayaTambahan" value="'+toV(p.biaya_tambahan)+'" placeholder="0"/></div></div>'
 
-  +'<div class="slabel">Fee Forwarder</div><div class="g3" style="margin-bottom:14px;">'
+  +'<div class="slabel">Fee Forwarder</div>'
+  +'<div class="field" style="max-width:180px;margin-bottom:12px;"><label>Jumlah Dus</label><input type="text" inputmode="numeric" id="ip-jumlahDus" value="'+toV(p.jumlah_dus||'')+'" placeholder="1"/></div>'
+  +'<div class="g3" style="margin-bottom:14px;">'
   +'<div class="field"><label>Panjang (cm)</label><input type="text" inputmode="decimal" id="ip-panjang" value="'+toV(p.panjang)+'" placeholder="45"/></div>'
   +'<div class="field"><label>Lebar (cm)</label><input type="text" inputmode="decimal" id="ip-lebar" value="'+toV(p.lebar)+'" placeholder="45"/></div>'
   +'<div class="field"><label>Tinggi (cm)</label><input type="text" inputmode="decimal" id="ip-tinggi" value="'+toV(p.tinggi)+'" placeholder="47"/></div></div>'
-  +'<div class="field" style="max-width:240px;margin-bottom:0;"><label>Biaya per CBM (Rp)</label><input type="text" inputmode="numeric" id="ip-biayaCbm" value="'+toV(p.biaya_cbm)+'" placeholder="5000000"/><span class="hint" id="hint-cbm">CBM auto: '+calcCbm(p).toFixed(4)+' m3</span></div>'
+  +'<div class="field" style="max-width:240px;margin-bottom:0;"><label>Biaya per CBM (Rp)</label><input type="text" inputmode="numeric" id="ip-biayaCbm" value="'+toV(p.biaya_cbm)+'" placeholder="5000000"/><span class="hint" id="hint-cbm">CBM per dus: '+((p.panjang*p.lebar*p.tinggi)/1000000).toFixed(4)+' m3 × '+(p.jumlah_dus||1)+' dus = '+calcCbm(p).toFixed(4)+' m3 total</span></div>'
   +'</div></div>'
 
   // rincian biaya
@@ -1163,7 +1184,7 @@ function bindInputs(i){
     ['ip-hargaYuan','harga_yuan'],['ip-qtyPerDus','qty_per_dus'],
     ['ip-biayaLokal','biaya_lokal_yuan'],['ip-biayaTambahan','biaya_tambahan'],
     ['ip-panjang','panjang'],['ip-lebar','lebar'],['ip-tinggi','tinggi'],
-    ['ip-biayaCbm','biaya_cbm']
+    ['ip-biayaCbm','biaya_cbm'],['ip-jumlahDus','jumlah_dus']
   ];
   fields.forEach(([id,key])=>{
     const el=$(id);if(!el)return;
@@ -1172,7 +1193,7 @@ function bindInputs(i){
       updateResults(i);
       if(id==='ip-biayaLokal'){const c=$('conv-lokal');if(c)c.textContent='= Rp '+fmt((parseNum(el.value)||0)*globalRate);}
       if(id==='ip-hargaYuan'){const c=$('conv-yuan');if(c)c.textContent='= Rp '+fmt((parseNum(el.value)||0)*globalRate)+' / unit';}
-      if(['ip-panjang','ip-lebar','ip-tinggi'].includes(id)){const h=$('hint-cbm');if(h)h.textContent='CBM auto: '+calcCbm(p).toFixed(4)+' m3';}
+      if(['ip-panjang','ip-lebar','ip-tinggi','ip-jumlahDus'].includes(id)){const h=$('hint-cbm');if(h)h.textContent='CBM per dus: '+((p.panjang*p.lebar*p.tinggi)/1000000).toFixed(4)+' m3 × '+(p.jumlah_dus||1)+' dus = '+calcCbm(p).toFixed(4)+' m3 total';}
       scheduleSave();
     });
   });
