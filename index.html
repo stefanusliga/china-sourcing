@@ -196,7 +196,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .field input::placeholder{color:var(--text3);font-family:'Inter',sans-serif;font-size:12px}
 .field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--od)}
 .field .hint{font-size:10px;color:var(--text3);font-style:italic}
-.field .conv{font-size:11px;color:var(--accent);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.conv,.field .conv{display:block;font-size:11px;color:var(--accent);margin-top:2px;font-family:'JetBrains Mono',monospace;font-weight:400;line-height:1.4}
+.lbl-row{display:flex;align-items:center;gap:6px}
+.note-btn{background:transparent;border:none;padding:0;margin:0;cursor:pointer;font-size:12px;line-height:1;color:var(--text3);opacity:.65;transition:opacity .15s,color .15s}
+.note-btn:hover{opacity:1;color:var(--accent)}
+.note-btn.filled{opacity:1;color:var(--accent)}
 .field-val{font-size:14px;font-family:'JetBrains Mono',monospace;color:var(--text);padding:8px 11px;background:var(--bg4);border-radius:var(--rs);border:1px solid var(--border)}
 
 /* PHOTOS */
@@ -509,14 +513,16 @@ const calcCbm=p=>((p.panjang*p.lebar*p.tinggi)/1000000)*(p.jumlah_dus||1);
 const statusLabel={belum_bayar:'⬜ Pending',menunggu_konfirmasi:'🟡 Pay',lunas:'🟢 Pay ✓'};
 const statusClass={belum_bayar:'status-belum',menunggu_konfirmasi:'status-menunggu',lunas:'status-lunas'};
 
-function calc(p){
+function calc(p,rateOverride){
+  const R=(rateOverride==null?globalRate:rateOverride);
   const cbmUsed=calcCbm(p);
-  const hargaBarang=(p.harga_yuan||0)*globalRate*(p.qty_per_dus||0);
-  const biayaLokal=(p.biaya_lokal_yuan||0)*globalRate;
+  const hargaBarang=(p.harga_yuan||0)*R*(p.qty_per_dus||0);
+  const biayaLokal=(p.biaya_lokal_yuan||0)*R;
   const tambahan=Number(p.biaya_tambahan)||0;
-  const totalProdukDus=hargaBarang+biayaLokal+tambahan;
+  const potongan=(p.potongan_harga_yuan||0)*R;
+  const totalProdukDus=hargaBarang+biayaLokal+tambahan-potongan;
   const perUnit=(p.qty_per_dus||0)>0?totalProdukDus/(p.qty_per_dus||0):0;
-  return{cbmUsed,hargaBarang,biayaLokal,tambahan,totalProdukDus,perUnit};
+  return{cbmUsed,hargaBarang,biayaLokal,tambahan,potongan,totalProdukDus,perUnit};
 }
 
 function showScreen(id){
@@ -1093,6 +1099,9 @@ function updateResults(i){
   g('bd-lokal-l').textContent='Fee kirim ke forwarder ('+(p.biaya_lokal_yuan||0)+' yuan)';
   g('bd-lokal').textContent='Rp '+fmt(r.biayaLokal);
   g('bd-tambahan').textContent='Rp '+fmt(r.tambahan);
+  if(g('bd-tambahan-l'))g('bd-tambahan-l').textContent='Biaya tambahan'+(p.biaya_tambahan_keterangan?' ('+p.biaya_tambahan_keterangan+')':'');
+  if(g('bd-potongan-l'))g('bd-potongan-l').textContent='Potongan harga'+(p.potongan_keterangan?' ('+p.potongan_keterangan+')':'');
+  if(g('bd-potongan'))g('bd-potongan').textContent='- Rp '+fmt(r.potongan);
   g('bd-total-dus').textContent='Rp '+fmt(r.totalProdukDus);
   updateOrderTotal();
 }
@@ -1124,12 +1133,15 @@ function renderPage0(i){
   +'<div class="photo-toggle-wrap"><div class="photo-toggle-hdr" onclick="togglePhoto(\'photo-pay-'+i+'\',\'arr-pay-'+i+'\')"><span class="photo-label">&#128179; Client Payment</span><span class="toggle-arrow" id="arr-pay-'+i+'">&#9658;</span></div><div class="photo-section" id="photo-pay-'+i+'" style="display:none;"><div id="pz-'+i+'-payment"></div></div></div>'
 
   +'<div class="slabel">Info Barang</div><div class="g2" style="margin-bottom:14px;">'
-  +'<div class="field"><label>Harga per unit (Yuan)</label><input type="text" inputmode="decimal" id="ip-hargaYuan" value="'+toV(p.harga_yuan)+'" placeholder="2.20"/><span class="conv" id="conv-yuan">= Rp '+fmt((p.harga_yuan||0)*globalRate)+' / unit</span></div>'
+  +'<div class="field"><label>Harga per unit (Yuan)</label><input type="text" inputmode="decimal" id="ip-hargaYuan" value="'+toV(p.harga_yuan)+'" placeholder="2.20"/><span class="conv" id="conv-yuan">= ¥'+fmt((p.harga_yuan||0)*(p.qty_per_dus||0),2)+' total produk</span></div>'
   +'<div class="field"><label>Quantity (pcs)</label><input type="text" inputmode="numeric" id="ip-qtyPerDus" value="'+toV(p.qty_per_dus)+'" placeholder="400"/></div></div>'
 
-  +'<div class="slabel">Pengiriman Lokal China</div><div class="g2" style="margin-bottom:14px;">'
-  +'<div class="field"><label>Biaya kirim ke forwarder (yuan)</label><input type="text" inputmode="decimal" id="ip-biayaLokal" value="'+toV(p.biaya_lokal_yuan)+'" placeholder="5"/><span class="conv" id="conv-lokal">= Rp '+fmt((p.biaya_lokal_yuan||0)*globalRate)+'</span></div>'
-  +'<div class="field"><label>Biaya tambahan (Rp)</label><input type="text" inputmode="numeric" id="ip-biayaTambahan" value="'+toV(p.biaya_tambahan)+'" placeholder="0"/></div></div>'
+  +'<div class="slabel">Pengiriman Lokal China</div><div class="g3" style="margin-bottom:8px;">'
+  +'<div class="field"><label>Biaya kirim ke forwarder (yuan)</label><input type="text" inputmode="decimal" id="ip-biayaLokal" value="'+toV(p.biaya_lokal_yuan)+'" placeholder="5"/></div>'
+  +'<div class="field"><div class="lbl-row"><label>Biaya tambahan (Rp)</label><button type="button" class="note-btn'+(p.biaya_tambahan_keterangan?' filled':'')+'" title="'+esc2(p.biaya_tambahan_keterangan||'Tambah keterangan')+'" onclick="openKetPopup(\'biaya_tambahan_keterangan\','+i+',\'Keterangan Biaya Tambahan\')">&#128221;</button></div><input type="text" inputmode="numeric" id="ip-biayaTambahan" value="'+toV(p.biaya_tambahan)+'" placeholder="0"/></div>'
+  +'<div class="field"><div class="lbl-row"><label>Potongan harga (Yuan)</label><button type="button" class="note-btn'+(p.potongan_keterangan?' filled':'')+'" title="'+esc2(p.potongan_keterangan||'Tambah keterangan')+'" onclick="openKetPopup(\'potongan_keterangan\','+i+',\'Keterangan Potongan Harga\')">&#128221;</button></div><input type="text" inputmode="decimal" id="ip-potonganYuan" value="'+toV(p.potongan_harga_yuan)+'" placeholder="0"/></div>'
+  +'</div>'
+  +'<span class="conv" id="conv-total-lokal-rmb" style="margin-bottom:14px;">= ¥'+fmt(((p.harga_yuan||0)*(p.qty_per_dus||0))+(p.biaya_lokal_yuan||0),2)+' total produk + fee pengiriman lokal</span>'
 
   +'<div class="slabel">Fee Forwarder</div>'
   +'<div class="field" style="max-width:180px;margin-bottom:12px;"><label>Jumlah Dus</label><input type="text" inputmode="numeric" id="ip-jumlahDus" value="'+toV(p.jumlah_dus||'')+'" placeholder="1"/></div>'
@@ -1144,7 +1156,8 @@ function renderPage0(i){
   +'<div class="res-wrap"><div class="bkd"><div class="bkd-title">Rincian Biaya</div>'
   +'<div class="brow"><span id="bd-barang-l">Harga barang</span><span class="bval" id="bd-barang">Rp '+fmt(r.hargaBarang)+'</span></div>'
   +'<div class="brow"><span id="bd-lokal-l">Fee kirim ke forwarder</span><span class="bval" id="bd-lokal">Rp '+fmt(r.biayaLokal)+'</span></div>'
-  +'<div class="brow"><span>Biaya tambahan</span><span class="bval" id="bd-tambahan">Rp '+fmt(r.tambahan)+'</span></div>'
+  +'<div class="brow"><span id="bd-tambahan-l">Biaya tambahan</span><span class="bval" id="bd-tambahan">Rp '+fmt(r.tambahan)+'</span></div>'
+  +'<div class="brow"><span id="bd-potongan-l">Potongan harga'+(p.potongan_keterangan?' ('+esc2(p.potongan_keterangan)+')':'')+'</span><span class="bval" id="bd-potongan" style="color:var(--red);">- Rp '+fmt(r.potongan)+'</span></div>'
   +'<div class="brow tot"><span>Total harga barang</span><span class="bval" id="bd-total-dus">Rp '+fmt(r.totalProdukDus)+'</span></div>'
   +'</div></div>'
   +'</div>' // end col-left
@@ -1183,22 +1196,51 @@ function bindInputs(i){
   const fields=[
     ['ip-hargaYuan','harga_yuan'],['ip-qtyPerDus','qty_per_dus'],
     ['ip-biayaLokal','biaya_lokal_yuan'],['ip-biayaTambahan','biaya_tambahan'],
+    ['ip-potonganYuan','potongan_harga_yuan'],
     ['ip-panjang','panjang'],['ip-lebar','lebar'],['ip-tinggi','tinggi'],
     ['ip-biayaCbm','biaya_cbm'],['ip-jumlahDus','jumlah_dus']
   ];
+  const updateTotalLokalRmb=()=>{const h=$('conv-total-lokal-rmb');if(h)h.textContent='= ¥'+fmt(((p.harga_yuan||0)*(p.qty_per_dus||0))+(p.biaya_lokal_yuan||0),2)+' total produk + fee pengiriman lokal';};
   fields.forEach(([id,key])=>{
     const el=$(id);if(!el)return;
     el.addEventListener('input',()=>{
       p[key]=parseNum(el.value);
       updateResults(i);
-      if(id==='ip-biayaLokal'){const c=$('conv-lokal');if(c)c.textContent='= Rp '+fmt((parseNum(el.value)||0)*globalRate);}
-      if(id==='ip-hargaYuan'){const c=$('conv-yuan');if(c)c.textContent='= Rp '+fmt((parseNum(el.value)||0)*globalRate)+' / unit';}
+      if(id==='ip-hargaYuan'||id==='ip-qtyPerDus'){const c=$('conv-yuan');if(c)c.textContent='= ¥'+fmt((p.harga_yuan||0)*(p.qty_per_dus||0),2)+' total produk';}
+      if(['ip-hargaYuan','ip-qtyPerDus','ip-biayaLokal'].includes(id))updateTotalLokalRmb();
       if(['ip-panjang','ip-lebar','ip-tinggi','ip-jumlahDus'].includes(id)){const h=$('hint-cbm');if(h)h.textContent='CBM per dus: '+((p.panjang*p.lebar*p.tinggi)/1000000).toFixed(4)+' m3 × '+(p.jumlah_dus||1)+' dus = '+calcCbm(p).toFixed(4)+' m3 total';}
       scheduleSave();
     });
   });
   const ne=$('ip-name');if(ne)ne.addEventListener('input',function(){p.name=this.value;renderTabs();scheduleSave();});
-  const gr=$('global-rate');if(gr)gr.addEventListener('input',function(){globalRate=parseNum(this.value)||2600;renderPageContent();scheduleSave();});
+  const gr=$('global-rate');if(gr)gr.addEventListener('input',function(){globalRate=parseNum(this.value)||2600;updateResults(i);updateOrderTotal();scheduleSave();});
+}
+
+// ── KETERANGAN POPUP ──
+function openNotePopup(title,value,onSave){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML='<div style="background:#fff;border-radius:12px;padding:20px;width:100%;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.25);">'
+    +'<div style="font-size:13px;font-weight:700;margin-bottom:10px;color:#1a1a1a;">'+esc2(title)+'</div>'
+    +'<textarea id="note-popup-input" style="width:100%;min-height:90px;border:1px solid #e5e5e2;border-radius:8px;padding:10px;font-family:inherit;font-size:13px;resize:vertical;outline:none;">'+esc2(value||'')+'</textarea>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">'
+    +'<button id="note-popup-cancel" style="background:transparent;border:1px solid #e5e5e2;border-radius:8px;padding:8px 16px;font-size:12px;font-family:inherit;cursor:pointer;">Batal</button>'
+    +'<button id="note-popup-save" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-family:inherit;font-weight:600;cursor:pointer;">Simpan</button>'
+    +'</div></div>';
+  document.body.appendChild(overlay);
+  const ta=overlay.querySelector('#note-popup-input');ta.focus();
+  overlay.querySelector('#note-popup-cancel').onclick=()=>overlay.remove();
+  overlay.addEventListener('mousedown',e=>{if(e.target===overlay)overlay.remove();});
+  overlay.querySelector('#note-popup-save').onclick=()=>{onSave(ta.value);overlay.remove();};
+}
+function openKetPopup(field,i,title){
+  const p=currentProducts[i];if(!p)return;
+  openNotePopup(title,p[field]||'',val=>{
+    p[field]=val;
+    updateResults(i);
+    renderPage0(i);
+    scheduleSave();
+  });
 }
 
 // ── PHOTOS ──
@@ -1293,7 +1335,7 @@ function renderClientView(orders){
 
     // Per product rincian
     const prodRows=products.map(p=>{
-      const r=calc({...p,harga_yuan:p.harga_yuan,qty_per_dus:p.qty_per_dus,panjang:p.panjang,lebar:p.lebar,tinggi:p.tinggi,biaya_lokal_yuan:p.biaya_lokal_yuan,biaya_cbm:p.biaya_cbm,biaya_tambahan:p.biaya_tambahan});
+      const r=calc(p,rate);
       const docPhotos=allPhotos.filter(ph=>ph.product_id===p.id&&ph.photo_type==='product');
       const payPhotos=allPhotos.filter(ph=>ph.product_id===p.id&&ph.photo_type==='payment');
       const cbmD=calcCbm(p);
@@ -1305,8 +1347,11 @@ function renderClientView(orders){
       return '<div class="client-product-row">'
         +'<div class="client-product-name">'+esc2(p.name||'Produk')+'</div>'
         +'<div class="client-detail-row"><span>Harga barang ('+p.harga_yuan+' × '+p.qty_per_dus+' × Rp '+fmt(rate)+')</span><span class="client-detail-val">Rp '+fmt(r.hargaBarang)+'</span></div>'
-        +'<div class="client-detail-row"><span>Fee kirim ke forwarder</span><span class="client-detail-val">Rp '+fmt(r.biayaLokal)+'</span></div>'
-        +'<div class="client-detail-row"><span>Biaya tambahan</span><span class="client-detail-val">Rp '+fmt(r.tambahan)+'</span></div>'
+        +'<div class="conv" style="margin:0 0 2px;">= ¥'+fmt((p.harga_yuan||0)*(p.qty_per_dus||0),2)+' total produk</div>'
+        +'<div class="client-detail-row"><span>Fee kirim ke forwarder ('+(p.biaya_lokal_yuan||0)+' yuan)</span><span class="client-detail-val">Rp '+fmt(r.biayaLokal)+'</span></div>'
+        +'<div class="conv" style="margin:0 0 2px;">= ¥'+fmt(((p.harga_yuan||0)*(p.qty_per_dus||0))+(p.biaya_lokal_yuan||0),2)+' total produk + fee pengiriman lokal</div>'
+        +'<div class="client-detail-row"><span>Biaya tambahan'+(p.biaya_tambahan_keterangan?' ('+esc2(p.biaya_tambahan_keterangan)+')':'')+'</span><span class="client-detail-val">Rp '+fmt(r.tambahan)+'</span></div>'
+        +(r.potongan?'<div class="client-detail-row"><span>Potongan harga'+(p.potongan_keterangan?' ('+esc2(p.potongan_keterangan)+')':'')+' ('+(p.potongan_harga_yuan||0)+' yuan)</span><span class="client-detail-val" style="color:var(--red);">- Rp '+fmt(r.potongan)+'</span></div>':'')
         +'<div class="client-detail-row" style="font-weight:600;border-top:1px solid var(--border);padding-top:6px;margin-top:2px;"><span>Total harga barang</span><span class="client-detail-val" style="color:var(--accent);">Rp '+fmt(r.totalProdukDus)+'</span></div>'
         +'<div class="client-detail-row"><span>Fee Forwarder ('+cbmD.toFixed(4)+' m3 × Rp '+fmt(p.biaya_cbm||0)+')</span><span class="client-detail-val">Rp '+fmt(cbmD*(p.biaya_cbm||0))+'</span></div>'
         +photoSection(docPhotos,'Document Barang')
@@ -1314,7 +1359,7 @@ function renderClientView(orders){
         +'</div>';
     }).join('');
 
-    const totalProduk=products.reduce((s,p)=>s+calc(p).totalProdukDus,0);
+    const totalProduk=products.reduce((s,p)=>s+calc(p,rate).totalProdukDus,0);
     const totalFee=products.reduce((s,p)=>s+calcCbm(p)*(p.biaya_cbm||0),0);
 
     return '<div class="client-order-card">'
@@ -1364,7 +1409,8 @@ function addCanvasToPdf(pdf,canvas,curY,pH,pW,mg){
   pdf.addPage();pdf.addImage(imgD,'JPEG',mg,mg,uw,imgH);return mg+imgH+5;
 }
 
-const pdfRow=(l,v,bold=false,orange=false)=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;"><span style="color:'+(bold?'#f0ede8':'#a89f94')+';font-weight:'+(bold?700:400)+';">'+l+'</span><span style="font-family:monospace;color:'+(orange?'#2563eb':'#f0ede8')+';font-weight:'+(bold?700:400)+';">Rp '+v+'</span></div>';
+const pdfRow=(l,v,bold=false,orange=false,prefix='Rp ')=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;"><span style="color:'+(bold?'#f0ede8':'#a89f94')+';font-weight:'+(bold?700:400)+';">'+l+'</span><span style="font-family:monospace;color:'+(orange?'#2563eb':'#f0ede8')+';font-weight:'+(bold?700:400)+';">'+prefix+v+'</span></div>';
+const pdfConv=t=>'<div style="font-size:10px;font-family:monospace;color:#2563eb;padding:4px 0 6px;">'+t+'</div>';
 
 async function exportAllPDF(){
   const btn=$('exp-btn'),toast=$('toast');btn.classList.add('loading');
@@ -1412,8 +1458,11 @@ async function exportAllPDF(){
         +'<div style="padding:14px 18px;">'+ph1+ph2
         +'<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b6158;margin-bottom:8px;">Rincian Biaya</div>'
         +pdfRow('Harga barang ('+p.harga_yuan+' × '+p.qty_per_dus+' × Rp '+fmt(globalRate)+')',fmt(r.hargaBarang))
+        +pdfConv('= ¥'+fmt((p.harga_yuan||0)*(p.qty_per_dus||0),2)+' total produk')
         +pdfRow('Fee kirim ke forwarder ('+(p.biaya_lokal_yuan||0)+' yuan)',fmt(r.biayaLokal))
-        +pdfRow('Biaya tambahan',fmt(r.tambahan))
+        +pdfConv('= ¥'+fmt(((p.harga_yuan||0)*(p.qty_per_dus||0))+(p.biaya_lokal_yuan||0),2)+' total produk + fee pengiriman lokal')
+        +pdfRow('Biaya tambahan'+(p.biaya_tambahan_keterangan?' ('+esc2(p.biaya_tambahan_keterangan)+')':''),fmt(r.tambahan))
+        +(r.potongan?pdfRow('Potongan harga'+(p.potongan_keterangan?' ('+esc2(p.potongan_keterangan)+')':'')+' ('+(p.potongan_harga_yuan||0)+' yuan)',fmt(r.potongan),false,false,'- Rp '):'')
         +'<div style="display:flex;justify-content:space-between;padding:7px 0 0;border-top:1px solid rgba(37,99,235,.3);margin-top:4px;">'
         +'<span style="font-size:12px;font-weight:700;color:#f0ede8;">Total harga barang</span>'
         +'<span style="font-family:monospace;font-weight:700;color:#2563eb;font-size:13px;">Rp '+fmt(r.totalProdukDus)+'</span></div>'
