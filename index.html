@@ -279,6 +279,91 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #pdf-render{position:fixed;top:-9999px;left:0;width:794px;background:#0f0e0d;font-family:'Inter',sans-serif;color:#f0ede8}
 .loading-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;color:var(--text3)}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+
+/* ═══ PO GENERATOR ═══ */
+.po-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
+.po-card:hover{border-color:var(--border2)}
+.po-card-left{min-width:0;flex:1}
+.po-num{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);word-break:break-all}
+.po-meta{font-size:11px;color:var(--text3);margin-top:3px}
+.po-card-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.po-status{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:100px;padding:3px 10px}
+.po-st-draft{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.po-st-sent{background:var(--od);color:var(--accent);border:1px solid var(--border2)}
+.po-st-confirmed{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+
+.po-sec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.po-sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.po-sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.po-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.po-grid{grid-template-columns:1fr}}
+.po-field{display:flex;flex-direction:column;gap:5px}
+.po-field label{font-size:11px;color:var(--text3);font-weight:600}
+.po-field label b{color:var(--text2);font-weight:600}
+.po-field input,.po-field select,.po-field textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px;font-size:13px;font-family:inherit;color:var(--text);width:100%;transition:border-color .2s}
+.po-field textarea{resize:vertical;min-height:60px}
+.po-field input:focus,.po-field select:focus,.po-field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--od)}
+.po-field .mono{font-family:'JetBrains Mono',monospace}
+.po-inline{display:flex;gap:8px;align-items:flex-end}
+.po-inline .po-field{flex:1}
+.btn-mini{background:var(--od);border:1px solid var(--border2);border-radius:8px;color:var(--accent);font-size:12px;font-family:inherit;font-weight:600;padding:9px 12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-mini:hover{background:var(--accent);color:#fff}
+.btn-mini.ghost{background:transparent;border-color:var(--border);color:var(--text3)}
+.btn-mini.ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--od)}
+
+/* PO ITEM TABLE */
+.po-tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--rs)}
+.po-tbl{width:100%;border-collapse:collapse;min-width:720px}
+.po-tbl th{background:var(--bg3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:9px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.po-tbl th small{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:none;letter-spacing:0}
+.po-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.po-tbl tr:last-child td{border-bottom:none}
+.po-tbl input{background:transparent;border:1px solid transparent;border-radius:5px;padding:6px 7px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--text);width:100%}
+.po-tbl input:hover{border-color:var(--border)}
+.po-tbl input:focus{outline:none;background:var(--bg3);border-color:var(--accent)}
+.po-tbl input.txt{font-family:'Inter',sans-serif}
+.po-thumb{width:46px;height:46px;border-radius:6px;object-fit:cover;border:1px solid var(--border);display:block;cursor:pointer;background:var(--bg3)}
+.po-thumb-ph{width:46px;height:46px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text3)}
+.po-total-cell{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
+.po-rowdel{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:5px}
+.po-rowdel:hover{background:rgba(255,80,80,.1);color:var(--red)}
+.po-sum{display:flex;justify-content:flex-end;gap:28px;padding:14px 4px 0;flex-wrap:wrap}
+.po-sum-item{text-align:right}
+.po-sum-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700}
+.po-sum-val{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);margin-top:2px}
+
+/* CATALOG */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.cat-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .2s;box-shadow:var(--shadow)}
+.cat-item:hover{border-color:var(--border2)}
+.cat-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--bg3);display:block}
+.cat-img-ph{width:100%;aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--text3)}
+.cat-body{padding:10px 12px}
+.cat-sku{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);word-break:break-all}
+.cat-nm{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.35}
+.cat-cn{font-size:11px;color:var(--text3)}
+.cat-price{font-size:12px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:5px}
+.cat-acts{display:flex;gap:6px;padding:0 12px 10px}
+.cat-acts button{flex:1;font-size:11px;padding:5px 0;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit}
+.cat-acts button:hover{border-color:var(--accent);color:var(--accent)}
+.cat-acts button.del:hover{border-color:var(--red);color:var(--red)}
+.cat-sel{position:relative;cursor:pointer;user-select:none}
+.cat-sel.picked{border-color:var(--accent);box-shadow:0 0 0 2px var(--og)}
+.cat-sel .tick{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.cat-sel.picked .tick{display:flex}
+.cat-qtybox{padding:0 12px 10px}
+.cat-qtybox input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text)}
+
+/* SIMPLE LIST ROWS (warehouse / supplier) */
+.lrow{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.lrow-t{font-size:13px;font-weight:600;color:var(--text)}
+.lrow-s{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.5;white-space:pre-line}
+.lrow-a{display:flex;gap:6px;flex-shrink:0}
+.modal.wide{max-width:620px;max-height:88vh;overflow-y:auto}
+.sub-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.sub-tab{padding:7px 15px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.sub-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+#pdf-render-w{position:fixed;top:-99999px;left:0;width:820px;background:#fff;color:#111}
 </style>
 </head>
 <body>
@@ -321,6 +406,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
   <div class="admin-tabs">
     <button class="admin-tab active" id="tab-orders" onclick="switchAdminTab('orders')">📦 Orders</button>
+    <button class="admin-tab" id="tab-po" onclick="switchAdminTab('po')">📄 PO Generator</button>
+    <button class="admin-tab" id="tab-catalog" onclick="switchAdminTab('catalog')">🏷️ Katalog</button>
     <button class="admin-tab" id="tab-clients" onclick="switchAdminTab('clients')">👥 Clients</button>
   </div>
   <div class="app">
@@ -340,6 +427,59 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
       <div id="clients-list"></div>
     </div>
+    <!-- PO GENERATOR PANEL -->
+    <div id="panel-po" style="display:none;">
+      <div class="om-hdr">
+        <div class="badge"><span class="dot"></span> Purchase Order · 采购订单</div>
+        <h1>PO <span>Generator</span></h1>
+        <p>Buat PO bilingual (ID/中文) untuk dikirim ke supplier China</p>
+      </div>
+      <div class="om-toolbar">
+        <div class="om-search">
+          <span class="si">🔍</span>
+          <input type="text" id="po-search" placeholder="Cari nomor PO / supplier..." oninput="renderPOPanel()"/>
+        </div>
+        <button class="btn-new" onclick="openNewPOModal()">＋ New PO</button>
+      </div>
+      <div id="po-list"></div>
+    </div>
+
+    <!-- KATALOG PANEL -->
+    <div id="panel-catalog" style="display:none;">
+      <div class="om-hdr">
+        <div class="badge"><span class="dot"></span> Master Data</div>
+        <h1>Katalog <span>&amp; Master</span></h1>
+        <p>Produk tersimpan, supplier, dan alamat gudang forwarder</p>
+      </div>
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="sub-produk" onclick="switchCatTab('produk')">📦 Produk</button>
+        <button class="sub-tab" id="sub-supplier" onclick="switchCatTab('supplier')">🏭 Supplier</button>
+        <button class="sub-tab" id="sub-gudang" onclick="switchCatTab('gudang')">🏢 Gudang Forwarder</button>
+      </div>
+
+      <div id="cat-panel-produk">
+        <div class="om-toolbar">
+          <div class="om-search">
+            <span class="si">🔍</span>
+            <input type="text" id="cat-search" placeholder="Cari SKU / nama produk..." oninput="renderCatalogGrid()"/>
+          </div>
+          <select id="cat-filter-supplier" onchange="renderCatalogGrid()" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;font-family:inherit;color:var(--text);"></select>
+          <button class="btn-new" onclick="openProductModal()">＋ Produk</button>
+        </div>
+        <div id="catalog-grid"></div>
+      </div>
+
+      <div id="cat-panel-supplier" style="display:none;">
+        <div class="om-toolbar"><div style="flex:1"></div><button class="btn-new" onclick="openSupplierModal()">＋ Supplier</button></div>
+        <div id="supplier-list"></div>
+      </div>
+
+      <div id="cat-panel-gudang" style="display:none;">
+        <div class="om-toolbar"><div style="flex:1"></div><button class="btn-new" onclick="openWarehouseModal()">＋ Gudang</button></div>
+        <div id="warehouse-list"></div>
+      </div>
+    </div>
+
     <!-- CLIENTS PANEL -->
     <div id="panel-clients" style="display:none;">
       <div class="om-hdr">
@@ -385,6 +525,230 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div id="page0"></div>
   </div>
 </div>
+
+<!-- ADMIN: PO EDITOR -->
+<div id="screen-po" class="screen">
+  <div class="topnav">
+    <div class="topnav-brand">China <span>Sourcing</span></div>
+    <div class="topnav-right">
+      <span class="topnav-user" id="nav-email-po"></span>
+      <span class="topnav-role">Admin</span>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="app">
+    <div class="calc-topbar">
+      <button class="back-btn" onclick="closePOEditor()">&#8592; Kembali</button>
+      <div class="calc-topbar-info">
+        <div id="po-title" style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;word-break:break-all;">-</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Purchase Order · 采购订单</div>
+      </div>
+      <div class="calc-topbar-right">
+        <button class="btn-mini ghost" id="po-export-btn" onclick="exportPOPDF()">⬇ Export PDF</button>
+      </div>
+    </div>
+
+    <!-- HEADER INFO -->
+    <div class="po-sec">
+      <div class="po-sec-title">Info PO · 订单信息</div>
+      <div class="po-grid">
+        <div class="po-field">
+          <label>Nomor PO · <b>订单号</b></label>
+          <input type="text" class="mono" id="po-f-number" onchange="savePOHeader()"/>
+        </div>
+        <div class="po-field">
+          <label>Tanggal PO · <b>日期</b></label>
+          <input type="date" id="po-f-date" onchange="savePOHeader()"/>
+        </div>
+        <div class="po-field">
+          <label>Supplier · <b>供应商</b></label>
+          <div class="po-inline">
+            <div class="po-field"><select id="po-f-supplier" onchange="savePOHeader()"></select></div>
+            <button class="btn-mini ghost" onclick="openSupplierModal()">＋</button>
+          </div>
+        </div>
+        <div class="po-field">
+          <label>Status</label>
+          <select id="po-f-status" onchange="savePOHeader()">
+            <option value="draft">DRAFT · 草稿</option>
+            <option value="sent">SENT · 已发送</option>
+            <option value="confirmed">CONFIRMED · 已确认</option>
+          </select>
+        </div>
+        <div class="po-field">
+          <label>Klien (internal) · <b>客户</b></label>
+          <input type="text" id="po-f-client" placeholder="Nama klien..." onchange="savePOHeader()"/>
+        </div>
+        <div class="po-field">
+          <label>Kode Marking · <b>唛头</b></label>
+          <input type="text" class="mono" id="po-f-marking" placeholder="cth: PST-2603" onchange="savePOHeader()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- WAREHOUSE -->
+    <div class="po-sec">
+      <div class="po-sec-title">Gudang Forwarder · 收货地址</div>
+      <div class="po-inline" style="margin-bottom:12px;">
+        <div class="po-field">
+          <label>Pilih Gudang · <b>选择仓库</b></label>
+          <select id="po-f-warehouse" onchange="savePOHeader();renderWarehousePreview()"></select>
+        </div>
+        <button class="btn-mini ghost" onclick="openWarehouseModal()">＋ Gudang Baru</button>
+      </div>
+      <div id="po-wh-preview"></div>
+    </div>
+
+    <!-- ITEMS -->
+    <div class="po-sec">
+      <div class="po-sec-title">Daftar Produk · 产品清单</div>
+      <div class="po-tbl-wrap">
+        <table class="po-tbl">
+          <thead>
+            <tr>
+              <th style="width:60px">Foto<small>图片</small></th>
+              <th style="width:150px">SKU<small>型号</small></th>
+              <th style="width:180px">Variant<small>规格</small></th>
+              <th style="width:100px">Qty<small>数量</small></th>
+              <th style="width:110px">Price<small>优级客户价格</small></th>
+              <th style="width:120px">Total CNY<small>金额</small></th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="po-items-body"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn-mini" onclick="openCatalogPicker()">＋ Pilih dari Katalog</button>
+        <button class="btn-mini ghost" onclick="addPOItemBlank()">＋ Baris Kosong</button>
+      </div>
+      <div class="po-sum">
+        <div class="po-sum-item"><div class="po-sum-lbl">Total Qty · 总数量</div><div class="po-sum-val" id="po-sum-qty">0</div></div>
+        <div class="po-sum-item"><div class="po-sum-lbl">Total CNY · 总金额</div><div class="po-sum-val" id="po-sum-cny">¥0.00</div></div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="po-sec">
+      <div class="po-sec-title">Catatan · 备注</div>
+      <div class="po-field">
+        <textarea id="po-f-notes" placeholder="Catatan untuk supplier (bilingual)..." onchange="savePOHeader()"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NEW PO -->
+<div class="modal-bg" id="modal-new-po" onclick="closeModalIf(event,'modal-new-po')">
+  <div class="modal">
+    <h2>PO Baru · 新订单</h2>
+    <p>Nomor PO dibuat otomatis dari supplier + tanggal + kode</p>
+    <div class="modal-field">
+      <label>Supplier · 供应商</label>
+      <select id="inp-po-supplier"></select>
+    </div>
+    <div class="modal-field">
+      <label>Tanggal PO</label>
+      <input type="date" id="inp-po-date"/>
+    </div>
+    <div class="modal-field">
+      <label>Kode Inisial (cth: PST)</label>
+      <input type="text" id="inp-po-code" value="PST" style="text-transform:uppercase"/>
+    </div>
+    <div class="modal-field">
+      <label>Klien (opsional)</label>
+      <input type="text" id="inp-po-client" placeholder="Nama klien..."/>
+    </div>
+    <div id="new-po-err" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-new-po')">Batal</button>
+      <button class="modal-btn primary" onclick="createPO()">Buat PO &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SUPPLIER -->
+<div class="modal-bg" id="modal-supplier" onclick="closeModalIf(event,'modal-supplier')">
+  <div class="modal">
+    <h2 id="sup-modal-title">Tambah Supplier</h2>
+    <p>Data supplier pabrik di China</p>
+    <input type="hidden" id="inp-sup-id"/>
+    <div class="modal-field"><label>Nama (Latin) · Name</label><input type="text" id="inp-sup-name" placeholder="cth: Shaqinuo"/></div>
+    <div class="modal-field"><label>Nama (中文)</label><input type="text" id="inp-sup-name-cn" placeholder="cth: 沙奇诺"/></div>
+    <div class="modal-field"><label>Kontak / 联系人</label><input type="text" id="inp-sup-contact" placeholder="Nama PIC"/></div>
+    <div class="modal-field"><label>WeChat / Telp</label><input type="text" id="inp-sup-wechat" placeholder="WeChat ID atau nomor"/></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-supplier')">Batal</button>
+      <button class="modal-btn primary" onclick="saveSupplier()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: WAREHOUSE -->
+<div class="modal-bg" id="modal-warehouse" onclick="closeModalIf(event,'modal-warehouse')">
+  <div class="modal wide">
+    <h2 id="wh-modal-title">Tambah Gudang Forwarder</h2>
+    <p>Alamat ini muncul di PDF PO sebagai alamat pengiriman (收货地址)</p>
+    <input type="hidden" id="inp-wh-id"/>
+    <div class="modal-field"><label>Label Gudang (internal)</label><input type="text" id="inp-wh-name" placeholder="cth: Guangzhou - Damoe"/></div>
+    <div class="modal-field"><label>Nama Gudang 中文</label><input type="text" id="inp-wh-name-cn" placeholder="cth: 广州大莫仓库"/></div>
+    <div class="modal-field"><label>Alamat 中文 (WAJIB — dipakai kurir China)</label><textarea id="inp-wh-addr-cn" rows="3" placeholder="广东省广州市..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:inherit;color:var(--text);resize:vertical"></textarea></div>
+    <div class="modal-field"><label>Alamat (Latin/EN)</label><textarea id="inp-wh-addr-en" rows="2" placeholder="Guangdong, Guangzhou..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:inherit;color:var(--text);resize:vertical"></textarea></div>
+    <div class="modal-field"><label>Penerima · 收货人</label><input type="text" id="inp-wh-contact" placeholder="cth: 陈先生"/></div>
+    <div class="modal-field"><label>Telp · 电话</label><input type="text" id="inp-wh-phone" placeholder="+86 ..."/></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-warehouse')">Batal</button>
+      <button class="modal-btn primary" onclick="saveWarehouse()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PRODUCT (CATALOG) -->
+<div class="modal-bg" id="modal-product" onclick="closeModalIf(event,'modal-product')">
+  <div class="modal wide">
+    <h2 id="prod-modal-title">Tambah Produk Katalog</h2>
+    <p>Produk tersimpan bisa dipakai ulang di PO mana pun</p>
+    <input type="hidden" id="inp-prod-id"/>
+    <input type="hidden" id="inp-prod-photo"/>
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;">
+      <div>
+        <div id="prod-photo-preview" class="cat-img-ph" style="width:110px;height:110px;border-radius:10px;">📷</div>
+        <label class="btn-mini ghost" style="display:block;text-align:center;margin-top:8px;cursor:pointer;">
+          Upload Foto<input type="file" accept="image/*" style="display:none" onchange="uploadCatalogPhoto(this.files[0])"/>
+        </label>
+      </div>
+      <div style="flex:1;min-width:220px;">
+        <div class="modal-field"><label>Supplier</label><select id="inp-prod-supplier"></select></div>
+        <div class="modal-field"><label>SKU · 型号</label><input type="text" id="inp-prod-sku" placeholder="cth: KKM-WGL-01" style="font-family:'JetBrains Mono',monospace"/></div>
+      </div>
+    </div>
+    <div class="modal-field"><label>Nama Produk (ID/EN)</label><input type="text" id="inp-prod-name" placeholder="cth: Kaos Kaki Motif"/></div>
+    <div class="modal-field"><label>Nama Produk 中文 (品名)</label><input type="text" id="inp-prod-name-cn" placeholder="cth: 花纹袜子"/></div>
+    <div class="modal-field"><label>Variant · 规格</label><input type="text" id="inp-prod-variant" placeholder="cth: Merah / L"/></div>
+    <div class="modal-field"><label>Harga Default (CNY) · 优级客户价格</label><input type="text" id="inp-prod-price" placeholder="cth: 2.5" style="font-family:'JetBrains Mono',monospace"/></div>
+    <div id="prod-err" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-product')">Batal</button>
+      <button class="modal-btn primary" id="btn-save-prod" onclick="saveProduct()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CATALOG PICKER -->
+<div class="modal-bg" id="modal-picker" onclick="closeModalIf(event,'modal-picker')">
+  <div class="modal wide">
+    <h2>Pilih Produk · 选择产品</h2>
+    <p>Klik produk untuk memilih, lalu isi qty</p>
+    <div class="modal-field"><input type="text" id="picker-search" placeholder="Cari SKU / nama..." oninput="renderPicker()"/></div>
+    <div id="picker-grid" style="max-height:46vh;overflow-y:auto;padding:4px 2px;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('modal-picker')">Batal</button>
+      <button class="modal-btn primary" onclick="addPickedToPO()">Tambah ke PO &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<div id="pdf-render-w"></div>
 
 <!-- CLIENT VIEW -->
 <div id="screen-client" class="screen">
@@ -598,12 +962,15 @@ async function doLogout(){
 // ══════════════════════════════════════════════
 // ADMIN TAB SWITCHING
 // ══════════════════════════════════════════════
+const ADMIN_TABS=['orders','po','catalog','clients'];
 function switchAdminTab(tab){
-  $('panel-orders').style.display=tab==='orders'?'':'none';
-  $('panel-clients').style.display=tab==='clients'?'':'none';
-  $('tab-orders').classList.toggle('active',tab==='orders');
-  $('tab-clients').classList.toggle('active',tab==='clients');
+  ADMIN_TABS.forEach(t=>{
+    const p=$('panel-'+t); if(p)p.style.display=(t===tab?'':'none');
+    const b=$('tab-'+t); if(b)b.classList.toggle('active',t===tab);
+  });
   if(tab==='clients')renderClientsPanel();
+  if(tab==='po')renderPOPanel();
+  if(tab==='catalog')renderCatalogPanel();
 }
 
 // ══════════════════════════════════════════════
@@ -716,6 +1083,7 @@ async function loadAdminData(){
   (profilesRes.data||[]).forEach(p=>{allClients[p.full_name||p.email]=p;});
 
   renderManager();
+  loadPOMasterData();
 }
 
 // ══════════════════════════════════════════════
@@ -805,6 +1173,7 @@ function openAddOrderModal(client){
   $('inp-date-add').value=new Date().toISOString().slice(0,10);
   $('modal-addorder').classList.add('show');
 }
+function openModal(id){$(id).classList.add('show');}
 function closeModal(id){$(id).classList.remove('show');}
 function closeModalIf(e,id){if(e.target.id===id)closeModal(id);}
 
@@ -1492,6 +1861,571 @@ async function exportAllPDF(){
   }catch(e){alert('Gagal export: '+e.message);console.error(e);}
   $('pdf-render').innerHTML='';btn.classList.remove('loading');
   btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF';
+}
+
+// ══════════════════════════════════════════════
+// PO GENERATOR — STATE
+// ══════════════════════════════════════════════
+let poSuppliers=[], poWarehouses=[], poCatalog=[], poList=[];
+let currentPO=null, currentPOItems=[], pickerSel={};
+const cny=n=>'¥'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=n=>(Number(n)||0).toLocaleString('en-US');
+const photoURL=p=>p?sb.storage.from(BUCKET).getPublicUrl(p).data.publicUrl:'';
+const poStatusLabel={draft:'DRAFT',sent:'SENT',confirmed:'CONFIRMED'};
+
+async function loadPOMasterData(){
+  const[s,w,c,p]=await Promise.all([
+    sb.from('suppliers').select('*').order('name'),
+    sb.from('forwarder_warehouses').select('*').order('name'),
+    sb.from('catalog_products').select('*').order('created_at',{ascending:false}),
+    sb.from('purchase_orders').select('*,po_items(*)').order('po_date',{ascending:false})
+  ]);
+  poSuppliers=s.data||[]; poWarehouses=w.data||[]; poCatalog=c.data||[]; poList=p.data||[];
+  fillSupplierSelects(); fillWarehouseSelect();
+  if($('tab-po')?.classList.contains('active'))renderPOPanel();
+  if($('tab-catalog')?.classList.contains('active'))renderCatalogPanel();
+}
+
+function supName(id){const s=poSuppliers.find(x=>x.id===id);return s?(s.name||s.name_cn||'-'):'-';}
+function fillSupplierSelects(){
+  const opts='<option value="">-- Pilih supplier --</option>'+poSuppliers.map(s=>'<option value="'+s.id+'">'+esc2(s.name||'')+(s.name_cn?' · '+esc2(s.name_cn):'')+'</option>').join('');
+  ['inp-po-supplier','po-f-supplier','inp-prod-supplier'].forEach(id=>{const el=$(id);if(el){const v=el.value;el.innerHTML=opts;el.value=v;}});
+  const f=$('cat-filter-supplier');
+  if(f){const v=f.value;f.innerHTML='<option value="">Semua supplier</option>'+poSuppliers.map(s=>'<option value="'+s.id+'">'+esc2(s.name||'')+'</option>').join('');f.value=v;}
+}
+function fillWarehouseSelect(){
+  const el=$('po-f-warehouse');if(!el)return;const v=el.value;
+  el.innerHTML='<option value="">-- Pilih gudang --</option>'+poWarehouses.map(w=>'<option value="'+w.id+'">'+esc2(w.name||w.name_cn||'-')+'</option>').join('');
+  el.value=v;
+}
+
+// ══════════════════════════════════════════════
+// PO LIST
+// ══════════════════════════════════════════════
+function renderPOPanel(){
+  const q=($('po-search')?.value||'').toLowerCase().trim();
+  const list=$('po-list');if(!list)return;
+  const rows=poList.filter(p=>!q||(p.po_number||'').toLowerCase().includes(q)||supName(p.supplier_id).toLowerCase().includes(q));
+  if(!rows.length){
+    list.innerHTML='<div class="empty-state"><div class="ei">📄</div><p>'+(q?'PO tidak ditemukan':'Belum ada PO')+'</p><small>Klik "New PO" untuk membuat purchase order</small></div>';
+    return;
+  }
+  list.innerHTML=rows.map(p=>{
+    const items=p.po_items||[];
+    const tq=items.reduce((a,i)=>a+(Number(i.qty)||0),0);
+    const tc=items.reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0);
+    return '<div class="po-card" onclick="openPO(\''+p.id+'\')">'
+      +'<div class="po-card-left"><div class="po-num">'+esc2(p.po_number||'(tanpa nomor)')+'</div>'
+      +'<div class="po-meta">'+esc2(supName(p.supplier_id))+' · '+items.length+' item · '+num(tq)+' pcs · '+cny(tc)+'</div></div>'
+      +'<div class="po-card-right"><span class="po-status po-st-'+(p.status||'draft')+'">'+(poStatusLabel[p.status]||'DRAFT')+'</span>'
+      +'<button class="client-del" onclick="event.stopPropagation();deletePO(\''+p.id+'\')">🗑</button></div></div>';
+  }).join('');
+}
+
+function openNewPOModal(){
+  fillSupplierSelects();
+  $('inp-po-date').value=new Date().toISOString().split('T')[0];
+  $('inp-po-code').value='PST';
+  $('inp-po-client').value='';
+  $('new-po-err').style.display='none';
+  openModal('modal-new-po');
+}
+
+function buildPONumber(supplierName,dateStr,code,status){
+  const[y,m,d]=(dateStr||'').split('-');
+  const clean=(supplierName||'Supplier').replace(/\s+/g,'');
+  return 'PO_'+clean+'_'+y+'-'+parseInt(m)+'-'+parseInt(d)+'_'+(code||'PST').toUpperCase()+'('+(poStatusLabel[status]||'DRAFT')+')';
+}
+
+async function createPO(){
+  const supId=$('inp-po-supplier').value;
+  const date=$('inp-po-date').value;
+  const err=$('new-po-err');
+  if(!supId||!date){err.textContent='Supplier dan tanggal wajib diisi.';err.style.display='block';return;}
+  const poNum=buildPONumber(supName(supId),date,$('inp-po-code').value,'draft');
+  const{data,error}=await sb.from('purchase_orders').insert({
+    po_number:poNum, supplier_id:supId, supplier_name:supName(supId),
+    po_date:date, status:'draft', po_code:($('inp-po-code').value||'PST').toUpperCase(),
+    client_name:$('inp-po-client').value||null, created_by:currentUser.id
+  }).select().single();
+  if(error){err.textContent=error.message;err.style.display='block';return;}
+  closeModal('modal-new-po');
+  poList.unshift({...data,po_items:[]});
+  openPO(data.id);
+}
+
+async function deletePO(id){
+  const po=poList.find(p=>p.id===id);
+  if(!confirm('Hapus PO "'+(po?.po_number||'')+'"?'))return;
+  await sb.from('purchase_orders').delete().eq('id',id);
+  poList=poList.filter(p=>p.id!==id);
+  renderPOPanel();
+}
+
+// ══════════════════════════════════════════════
+// PO EDITOR
+// ══════════════════════════════════════════════
+async function openPO(id){
+  const{data:po}=await sb.from('purchase_orders').select('*').eq('id',id).single();
+  const{data:items}=await sb.from('po_items').select('*').eq('po_id',id).order('sort_order');
+  currentPO=po; currentPOItems=items||[];
+  $('nav-email-po').textContent=currentUser?.email||'';
+  fillSupplierSelects(); fillWarehouseSelect();
+  $('po-title').textContent=po.po_number||'-';
+  $('po-f-number').value=po.po_number||'';
+  $('po-f-date').value=po.po_date||'';
+  $('po-f-supplier').value=po.supplier_id||'';
+  $('po-f-status').value=po.status||'draft';
+  $('po-f-client').value=po.client_name||'';
+  $('po-f-marking').value=po.marking_code||'';
+  $('po-f-warehouse').value=po.warehouse_id||'';
+  $('po-f-notes').value=po.notes||'';
+  renderWarehousePreview();
+  renderPOItems();
+  const eb=$('exp-bar');if(eb)eb.style.display='none';
+  showScreen('screen-po');
+}
+
+function closePOEditor(){
+  currentPO=null;
+  showScreen('screen-manager');
+  switchAdminTab('po');
+  loadPOMasterData();
+}
+
+async function savePOHeader(){
+  if(!currentPO)return;
+  const supId=$('po-f-supplier').value||null;
+  const status=$('po-f-status').value;
+  const date=$('po-f-date').value;
+  let poNum=$('po-f-number').value;
+  // auto-sync suffix status kalau nomor masih mengikuti pola generator
+  if(/^PO_.+\((DRAFT|SENT|CONFIRMED)\)$/.test(poNum)){
+    poNum=poNum.replace(/\((DRAFT|SENT|CONFIRMED)\)$/,'('+poStatusLabel[status]+')');
+    $('po-f-number').value=poNum;
+  }
+  const patch={
+    po_number:poNum, supplier_id:supId, supplier_name:supId?supName(supId):null,
+    po_date:date||null, status, client_name:$('po-f-client').value||null,
+    marking_code:$('po-f-marking').value||null, warehouse_id:$('po-f-warehouse').value||null,
+    notes:$('po-f-notes').value||null
+  };
+  Object.assign(currentPO,patch);
+  $('po-title').textContent=poNum||'-';
+  await sb.from('purchase_orders').update(patch).eq('id',currentPO.id);
+}
+
+function renderWarehousePreview(){
+  const el=$('po-wh-preview');if(!el)return;
+  const w=poWarehouses.find(x=>x.id===$('po-f-warehouse').value);
+  if(!w){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:10px 12px;border:1px dashed var(--border);border-radius:8px;">Belum ada gudang dipilih. Alamat ini akan tercetak di PDF sebagai 收货地址.</div>';return;}
+  el.innerHTML='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.7;">'
+    +'<div style="font-weight:700;color:var(--text);">'+esc2(w.name_cn||w.name||'')+'</div>'
+    +(w.address_cn?'<div style="color:var(--text2);">'+esc2(w.address_cn)+'</div>':'')
+    +(w.address_en?'<div style="color:var(--text3);">'+esc2(w.address_en)+'</div>':'')
+    +'<div style="color:var(--text3);margin-top:4px;">收货人 '+esc2(w.contact_name||'-')+' · 电话 '+esc2(w.contact_phone||'-')+'</div></div>';
+}
+
+function renderPOItems(){
+  const body=$('po-items-body');if(!body)return;
+  if(!currentPOItems.length){
+    body.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text3);font-size:13px;">Belum ada produk. Klik "Pilih dari Katalog".</td></tr>';
+    updatePOTotals();return;
+  }
+  body.innerHTML=currentPOItems.map((it,i)=>{
+    const url=photoURL(it.photo_path);
+    const total=(Number(it.qty)||0)*(Number(it.price)||0);
+    return '<tr>'
+      +'<td>'+(url?'<img class="po-thumb" src="'+url+'" onclick="openImageModal(\''+url+'\')"/>':'<div class="po-thumb-ph">📷</div>')+'</td>'
+      +'<td><input class="txt" value="'+esc2(it.sku||'')+'" style="font-family:\'JetBrains Mono\',monospace" onchange="updatePOItem('+i+',\'sku\',this.value)"/></td>'
+      +'<td><input class="txt" value="'+esc2(it.variant||'')+'" onchange="updatePOItem('+i+',\'variant\',this.value)"/></td>'
+      +'<td><input value="'+(it.qty||0)+'" onchange="updatePOItem('+i+',\'qty\',this.value)"/></td>'
+      +'<td><input value="'+(it.price||0)+'" onchange="updatePOItem('+i+',\'price\',this.value)"/></td>'
+      +'<td class="po-total-cell" id="po-tot-'+i+'">'+cny(total)+'</td>'
+      +'<td><button class="po-rowdel" onclick="deletePOItem('+i+')">×</button></td></tr>';
+  }).join('');
+  updatePOTotals();
+}
+
+function updatePOTotals(){
+  const tq=currentPOItems.reduce((a,i)=>a+(Number(i.qty)||0),0);
+  const tc=currentPOItems.reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0);
+  $('po-sum-qty').textContent=num(tq);
+  $('po-sum-cny').textContent=cny(tc);
+}
+
+async function updatePOItem(idx,field,val){
+  const it=currentPOItems[idx];if(!it)return;
+  it[field]=(field==='qty'||field==='price')?parseNum(val):val;
+  const cell=$('po-tot-'+idx);
+  if(cell)cell.textContent=cny((Number(it.qty)||0)*(Number(it.price)||0));
+  updatePOTotals();
+  await sb.from('po_items').update({[field]:it[field]}).eq('id',it.id);
+}
+
+async function addPOItemBlank(){
+  const{data,error}=await sb.from('po_items').insert({
+    po_id:currentPO.id,sku:'',variant:'',qty:0,price:0,sort_order:currentPOItems.length
+  }).select().single();
+  if(error){alert(error.message);return;}
+  currentPOItems.push(data);renderPOItems();
+}
+
+async function deletePOItem(idx){
+  const it=currentPOItems[idx];if(!it)return;
+  await sb.from('po_items').delete().eq('id',it.id);
+  currentPOItems.splice(idx,1);renderPOItems();
+}
+
+// ══════════════════════════════════════════════
+// CATALOG PICKER
+// ══════════════════════════════════════════════
+function openCatalogPicker(){
+  pickerSel={};$('picker-search').value='';renderPicker();openModal('modal-picker');
+}
+function renderPicker(){
+  const q=($('picker-search')?.value||'').toLowerCase().trim();
+  const supId=currentPO?.supplier_id;
+  let rows=poCatalog.filter(p=>!q||(p.sku||'').toLowerCase().includes(q)||(p.name_en||'').toLowerCase().includes(q)||(p.name_cn||'').includes(q));
+  // produk supplier PO ini ditampilkan lebih dulu
+  rows=rows.sort((a,b)=>(b.supplier_id===supId?1:0)-(a.supplier_id===supId?1:0));
+  const g=$('picker-grid');
+  if(!rows.length){g.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Belum ada produk di katalog. Buat dulu di tab Katalog.</div>';return;}
+  g.innerHTML='<div class="cat-grid">'+rows.map(p=>{
+    const url=photoURL(p.photo_path);
+    const on=pickerSel[p.id]!==undefined;
+    const other=p.supplier_id&&supId&&p.supplier_id!==supId;
+    return '<div class="cat-item cat-sel'+(on?' picked':'')+'" onclick="togglePick(\''+p.id+'\')">'
+      +'<span class="tick">✓</span>'
+      +(url?'<img class="cat-img" src="'+url+'"/>':'<div class="cat-img-ph">📷</div>')
+      +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'-')+'</div>'
+      +'<div class="cat-nm">'+esc2(p.name_en||'')+'</div>'
+      +'<div class="cat-cn">'+esc2(p.name_cn||'')+(p.variant?' · '+esc2(p.variant):'')+'</div>'
+      +'<div class="cat-price">'+cny(p.default_price)+(other?' <span style="color:var(--yellow);font-size:10px;">⚠ supplier lain</span>':'')+'</div></div>'
+      +(on?'<div class="cat-qtybox" onclick="event.stopPropagation()"><input type="text" placeholder="Qty" value="'+(pickerSel[p.id]||'')+'" oninput="pickerSel[\''+p.id+'\']=this.value"/></div>':'')
+      +'</div>';
+  }).join('')+'</div>';
+}
+function togglePick(id){
+  if(pickerSel[id]!==undefined)delete pickerSel[id];else pickerSel[id]='';
+  renderPicker();
+}
+async function addPickedToPO(){
+  const ids=Object.keys(pickerSel);
+  if(!ids.length){closeModal('modal-picker');return;}
+  const rows=ids.map((id,n)=>{
+    const p=poCatalog.find(x=>x.id===id);
+    return{po_id:currentPO.id,catalog_product_id:p.id,sku:p.sku||'',name_en:p.name_en||'',name_cn:p.name_cn||'',
+      variant:p.variant||'',qty:parseNum(pickerSel[id])||0,price:Number(p.default_price)||0,
+      photo_path:p.photo_path||null,sort_order:currentPOItems.length+n};
+  });
+  const{data,error}=await sb.from('po_items').insert(rows).select();
+  if(error){alert(error.message);return;}
+  currentPOItems.push(...(data||[]));
+  closeModal('modal-picker');renderPOItems();
+}
+
+// ══════════════════════════════════════════════
+// CATALOG / SUPPLIER / WAREHOUSE PANELS
+// ══════════════════════════════════════════════
+function switchCatTab(t){
+  ['produk','supplier','gudang'].forEach(x=>{
+    $('cat-panel-'+x).style.display=(x===t?'':'none');
+    $('sub-'+x).classList.toggle('active',x===t);
+  });
+  renderCatalogPanel();
+}
+function renderCatalogPanel(){renderCatalogGrid();renderSupplierList();renderWarehouseList();fillSupplierSelects();}
+
+function renderCatalogGrid(){
+  const el=$('catalog-grid');if(!el)return;
+  const q=($('cat-search')?.value||'').toLowerCase().trim();
+  const f=$('cat-filter-supplier')?.value||'';
+  const rows=poCatalog.filter(p=>(!f||p.supplier_id===f)&&(!q||(p.sku||'').toLowerCase().includes(q)||(p.name_en||'').toLowerCase().includes(q)||(p.name_cn||'').includes(q)));
+  if(!rows.length){el.innerHTML='<div class="empty-state"><div class="ei">🏷️</div><p>Belum ada produk</p><small>Klik "＋ Produk" untuk menambah ke katalog</small></div>';return;}
+  el.innerHTML='<div class="cat-grid">'+rows.map(p=>{
+    const url=photoURL(p.photo_path);
+    return '<div class="cat-item">'
+      +(url?'<img class="cat-img" src="'+url+'" onclick="openImageModal(\''+url+'\')"/>':'<div class="cat-img-ph">📷</div>')
+      +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'-')+'</div>'
+      +'<div class="cat-nm">'+esc2(p.name_en||'')+'</div>'
+      +'<div class="cat-cn">'+esc2(p.name_cn||'')+(p.variant?' · '+esc2(p.variant):'')+'</div>'
+      +'<div class="cat-price">'+cny(p.default_price)+'</div>'
+      +'<div class="cat-cn" style="margin-top:4px;">'+esc2(supName(p.supplier_id))+'</div></div>'
+      +'<div class="cat-acts"><button onclick="openProductModal(\''+p.id+'\')">Edit</button><button class="del" onclick="deleteProduct(\''+p.id+'\')">Hapus</button></div></div>';
+  }).join('')+'</div>';
+}
+
+function openProductModal(id){
+  fillSupplierSelects();
+  $('prod-err').style.display='none';
+  const p=id?poCatalog.find(x=>x.id===id):null;
+  $('prod-modal-title').textContent=p?'Edit Produk':'Tambah Produk Katalog';
+  $('inp-prod-id').value=p?.id||'';
+  $('inp-prod-photo').value=p?.photo_path||'';
+  $('inp-prod-supplier').value=p?.supplier_id||'';
+  $('inp-prod-sku').value=p?.sku||'';
+  $('inp-prod-name').value=p?.name_en||'';
+  $('inp-prod-name-cn').value=p?.name_cn||'';
+  $('inp-prod-variant').value=p?.variant||'';
+  $('inp-prod-price').value=p?.default_price??'';
+  setProdPhotoPreview(p?.photo_path||'');
+  openModal('modal-product');
+}
+function setProdPhotoPreview(path){
+  const el=$('prod-photo-preview');
+  if(path){const url=photoURL(path);el.outerHTML='<img id="prod-photo-preview" class="cat-img" src="'+url+'" style="width:110px;height:110px;border-radius:10px;object-fit:cover;"/>';}
+  else{el.outerHTML='<div id="prod-photo-preview" class="cat-img-ph" style="width:110px;height:110px;border-radius:10px;">📷</div>';}
+}
+async function uploadCatalogPhoto(file){
+  if(!file)return;
+  const btn=$('btn-save-prod');btn.disabled=true;btn.textContent='Upload...';
+  try{
+    const compressed=await compressImage(file);
+    const path='catalog/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+    const{error}=await sb.storage.from(BUCKET).upload(path,compressed,{contentType:'image/jpeg'});
+    if(error)throw error;
+    const old=$('inp-prod-photo').value;
+    if(old)await sb.storage.from(BUCKET).remove([old]);
+    $('inp-prod-photo').value=path;
+    setProdPhotoPreview(path);
+  }catch(e){const er=$('prod-err');er.textContent=e.message;er.style.display='block';}
+  btn.disabled=false;btn.textContent='Simpan';
+}
+async function saveProduct(){
+  const id=$('inp-prod-id').value;
+  const payload={
+    supplier_id:$('inp-prod-supplier').value||null,
+    sku:$('inp-prod-sku').value||null,
+    name_en:$('inp-prod-name').value||null,
+    name_cn:$('inp-prod-name-cn').value||null,
+    variant:$('inp-prod-variant').value||null,
+    default_price:parseNum($('inp-prod-price').value),
+    photo_path:$('inp-prod-photo').value||null
+  };
+  if(!payload.sku&&!payload.name_en){const er=$('prod-err');er.textContent='Isi minimal SKU atau nama produk.';er.style.display='block';return;}
+  let res;
+  if(id)res=await sb.from('catalog_products').update(payload).eq('id',id).select().single();
+  else res=await sb.from('catalog_products').insert(payload).select().single();
+  if(res.error){const er=$('prod-err');er.textContent=res.error.message;er.style.display='block';return;}
+  if(id)poCatalog=poCatalog.map(p=>p.id===id?res.data:p);else poCatalog.unshift(res.data);
+  closeModal('modal-product');renderCatalogGrid();
+}
+async function deleteProduct(id){
+  const p=poCatalog.find(x=>x.id===id);
+  if(!confirm('Hapus produk "'+(p?.sku||p?.name_en||'')+'" dari katalog?'))return;
+  if(p?.photo_path)await sb.storage.from(BUCKET).remove([p.photo_path]);
+  await sb.from('catalog_products').delete().eq('id',id);
+  poCatalog=poCatalog.filter(x=>x.id!==id);renderCatalogGrid();
+}
+
+function renderSupplierList(){
+  const el=$('supplier-list');if(!el)return;
+  if(!poSuppliers.length){el.innerHTML='<div class="empty-state"><div class="ei">🏭</div><p>Belum ada supplier</p></div>';return;}
+  el.innerHTML=poSuppliers.map(s=>'<div class="lrow"><div><div class="lrow-t">'+esc2(s.name||'-')+(s.name_cn?' · '+esc2(s.name_cn):'')+'</div>'
+    +'<div class="lrow-s">'+esc2(s.contact||'-')+' · '+esc2(s.wechat||'-')+'</div></div>'
+    +'<div class="lrow-a"><button class="btn-sm primary" onclick="openSupplierModal(\''+s.id+'\')">Edit</button>'
+    +'<button class="btn-sm" onclick="deleteSupplier(\''+s.id+'\')">Hapus</button></div></div>').join('');
+}
+function openSupplierModal(id){
+  const s=id?poSuppliers.find(x=>x.id===id):null;
+  $('sup-modal-title').textContent=s?'Edit Supplier':'Tambah Supplier';
+  $('inp-sup-id').value=s?.id||'';
+  $('inp-sup-name').value=s?.name||'';
+  $('inp-sup-name-cn').value=s?.name_cn||'';
+  $('inp-sup-contact').value=s?.contact||'';
+  $('inp-sup-wechat').value=s?.wechat||'';
+  openModal('modal-supplier');
+}
+async function saveSupplier(){
+  const id=$('inp-sup-id').value;
+  const payload={name:$('inp-sup-name').value||null,name_cn:$('inp-sup-name-cn').value||null,
+    contact:$('inp-sup-contact').value||null,wechat:$('inp-sup-wechat').value||null};
+  if(!payload.name&&!payload.name_cn){alert('Nama supplier wajib diisi.');return;}
+  let res;
+  if(id)res=await sb.from('suppliers').update(payload).eq('id',id).select().single();
+  else res=await sb.from('suppliers').insert(payload).select().single();
+  if(res.error){alert(res.error.message);return;}
+  if(id)poSuppliers=poSuppliers.map(x=>x.id===id?res.data:x);else poSuppliers.push(res.data);
+  poSuppliers.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  closeModal('modal-supplier');fillSupplierSelects();renderSupplierList();
+}
+async function deleteSupplier(id){
+  if(!confirm('Hapus supplier ini? Produk & PO terkait tidak ikut terhapus.'))return;
+  await sb.from('suppliers').delete().eq('id',id);
+  poSuppliers=poSuppliers.filter(x=>x.id!==id);fillSupplierSelects();renderSupplierList();
+}
+
+function renderWarehouseList(){
+  const el=$('warehouse-list');if(!el)return;
+  if(!poWarehouses.length){el.innerHTML='<div class="empty-state"><div class="ei">🏢</div><p>Belum ada gudang forwarder</p><small>Tambahkan alamat gudang agar bisa dipilih saat buat PO</small></div>';return;}
+  el.innerHTML=poWarehouses.map(w=>'<div class="lrow"><div><div class="lrow-t">'+esc2(w.name||'-')+(w.name_cn?' · '+esc2(w.name_cn):'')+'</div>'
+    +'<div class="lrow-s">'+esc2(w.address_cn||'-')+'\n'+esc2(w.address_en||'')+'\n收货人 '+esc2(w.contact_name||'-')+' · '+esc2(w.contact_phone||'-')+'</div></div>'
+    +'<div class="lrow-a"><button class="btn-sm primary" onclick="openWarehouseModal(\''+w.id+'\')">Edit</button>'
+    +'<button class="btn-sm" onclick="deleteWarehouse(\''+w.id+'\')">Hapus</button></div></div>').join('');
+}
+function openWarehouseModal(id){
+  const w=id?poWarehouses.find(x=>x.id===id):null;
+  $('wh-modal-title').textContent=w?'Edit Gudang':'Tambah Gudang Forwarder';
+  $('inp-wh-id').value=w?.id||'';
+  $('inp-wh-name').value=w?.name||'';
+  $('inp-wh-name-cn').value=w?.name_cn||'';
+  $('inp-wh-addr-cn').value=w?.address_cn||'';
+  $('inp-wh-addr-en').value=w?.address_en||'';
+  $('inp-wh-contact').value=w?.contact_name||'';
+  $('inp-wh-phone').value=w?.contact_phone||'';
+  openModal('modal-warehouse');
+}
+async function saveWarehouse(){
+  const id=$('inp-wh-id').value;
+  const payload={name:$('inp-wh-name').value||null,name_cn:$('inp-wh-name-cn').value||null,
+    address_cn:$('inp-wh-addr-cn').value||null,address_en:$('inp-wh-addr-en').value||null,
+    contact_name:$('inp-wh-contact').value||null,contact_phone:$('inp-wh-phone').value||null};
+  if(!payload.name){alert('Label gudang wajib diisi.');return;}
+  if(!payload.address_cn){alert('Alamat 中文 wajib diisi — ini yang dipakai kurir di China.');return;}
+  let res;
+  if(id)res=await sb.from('forwarder_warehouses').update(payload).eq('id',id).select().single();
+  else res=await sb.from('forwarder_warehouses').insert(payload).select().single();
+  if(res.error){alert(res.error.message);return;}
+  if(id)poWarehouses=poWarehouses.map(x=>x.id===id?res.data:x);else poWarehouses.push(res.data);
+  poWarehouses.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  closeModal('modal-warehouse');fillWarehouseSelect();renderWarehouseList();
+  if(currentPO){$('po-f-warehouse').value=currentPO.warehouse_id||'';renderWarehousePreview();}
+}
+async function deleteWarehouse(id){
+  if(!confirm('Hapus gudang ini?'))return;
+  await sb.from('forwarder_warehouses').delete().eq('id',id);
+  poWarehouses=poWarehouses.filter(x=>x.id!==id);fillWarehouseSelect();renderWarehouseList();
+}
+
+// ══════════════════════════════════════════════
+// PO → PDF (bilingual, white/printable)
+// ══════════════════════════════════════════════
+async function pathToDataURL(path){
+  if(!path)return'';
+  try{
+    const{data}=await sb.storage.from(BUCKET).download(path);
+    if(!data)return'';
+    return await new Promise(r=>{const fr=new FileReader();fr.onload=e=>r(e.target.result);fr.onerror=()=>r('');fr.readAsDataURL(data);});
+  }catch{return'';}
+}
+async function renderBlockW(html){
+  const c=$('pdf-render-w');
+  c.innerHTML='<div style="font-family:Inter,\'Microsoft YaHei\',\'PingFang SC\',\'Noto Sans SC\',sans-serif;color:#111;background:#fff;width:820px;">'+html+'</div>';
+  await new Promise(r=>setTimeout(r,140));
+  return html2canvas(c,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+}
+
+async function exportPOPDF(){
+  if(!currentPO)return;
+  const btn=$('po-export-btn'); const orig=btn.textContent; btn.textContent='Membuat PDF...'; btn.style.pointerEvents='none';
+  try{
+    const w=poWarehouses.find(x=>x.id===currentPO.warehouse_id);
+    const s=poSuppliers.find(x=>x.id===currentPO.supplier_id);
+    const tq=currentPOItems.reduce((a,i)=>a+(Number(i.qty)||0),0);
+    const tc=currentPOItems.reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0);
+
+    // pre-load semua foto jadi dataURL (hindari masalah CORS)
+    const imgMap={};
+    for(const it of currentPOItems){
+      if(it.photo_path&&!imgMap[it.photo_path])imgMap[it.photo_path]=await pathToDataURL(it.photo_path);
+    }
+
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pW=pdf.internal.pageSize.getWidth(),pH=pdf.internal.pageSize.getHeight(),mg=10;let cy=mg;
+
+    const B='1px solid #000';
+    const cell=(c,extra='')=>'<td style="border:'+B+';padding:6px 8px;font-size:12px;'+extra+'">'+c+'</td>';
+
+    // ── HEADER BLOCK
+    const hdr='<div style="padding:4px 0 14px;">'
+      +'<div style="text-align:center;font-size:19px;font-weight:800;letter-spacing:.5px;margin-bottom:2px;">PURCHASE ORDER · 采购订单</div>'
+      +'<div style="text-align:center;font-size:14px;font-weight:700;font-family:monospace;margin-bottom:14px;">'+esc2(currentPO.po_number||'')+'</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      +'<tr>'
+      +'<td style="border:'+B+';padding:8px 10px;width:50%;vertical-align:top;">'
+        +'<div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;margin-bottom:4px;">Supplier · 供应商</div>'
+        +'<div style="font-weight:700;font-size:13px;">'+esc2(s?.name||currentPO.supplier_name||'-')+'</div>'
+        +(s?.name_cn?'<div>'+esc2(s.name_cn)+'</div>':'')
+        +(s?.contact?'<div style="color:#555;">联系人 / PIC: '+esc2(s.contact)+'</div>':'')
+        +(s?.wechat?'<div style="color:#555;">WeChat / Tel: '+esc2(s.wechat)+'</div>':'')
+      +'</td>'
+      +'<td style="border:'+B+';padding:8px 10px;width:50%;vertical-align:top;">'
+        +'<div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;margin-bottom:4px;">Detail PO · 订单详情</div>'
+        +'<div>Tanggal / 日期: <b>'+esc2(currentPO.po_date||'-')+'</b></div>'
+        +'<div>Status: <b>'+(poStatusLabel[currentPO.status]||'DRAFT')+'</b></div>'
+        +'<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #999;">Kode Marking / <b>唛头</b>:</div>'
+        +'<div style="font-family:monospace;font-size:15px;font-weight:800;letter-spacing:1px;">'+esc2(currentPO.marking_code||'-')+'</div>'
+      +'</td>'
+      +'</tr>'
+      +'<tr><td colspan="2" style="border:'+B+';padding:8px 10px;">'
+        +'<div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;margin-bottom:4px;">Alamat Pengiriman · 收货地址</div>'
+        +'<div style="font-weight:700;font-size:13px;">'+esc2(w?.name_cn||w?.name||'-')+'</div>'
+        +(w?.address_cn?'<div style="font-size:13px;">'+esc2(w.address_cn)+'</div>':'')
+        +(w?.address_en?'<div style="color:#555;">'+esc2(w.address_en)+'</div>':'')
+        +'<div style="margin-top:3px;">收货人 / Penerima: <b>'+esc2(w?.contact_name||'-')+'</b> &nbsp;·&nbsp; 电话 / Telp: <b>'+esc2(w?.contact_phone||'-')+'</b></div>'
+      +'</td></tr>'
+      +'</table></div>';
+    cy=addCanvasToPdf(pdf,await renderBlockW(hdr),cy,pH,pW,mg);
+
+    // ── TABLE HEADER (mirror format Excel: total di baris header)
+    const thead=(withTotals)=>'<table style="width:100%;border-collapse:collapse;">'
+      +'<tr>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:80px;">Product<br>图片</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:130px;">SKU<br>型号</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;">Variant<br>规格</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:110px;">Qty<br>数量'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+num(tq)+'</div>':'')+'</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:100px;">Price<br>优级客户价格</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:120px;">Total CNY<br>金额'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+(tc).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</th>'
+      +'</tr>';
+
+    const CHUNK=7;
+    for(let i=0;i<Math.max(currentPOItems.length,1);i+=CHUNK){
+      const slice=currentPOItems.slice(i,i+CHUNK);
+      let html=thead(i===0);
+      if(!slice.length)html+='<tr>'+cell('&nbsp;')+cell('')+cell('')+cell('')+cell('')+cell('')+'</tr>';
+      slice.forEach(it=>{
+        const img=imgMap[it.photo_path]?'<img src="'+imgMap[it.photo_path]+'" style="width:62px;height:62px;object-fit:cover;display:block;margin:0 auto;"/>':'<div style="color:#bbb;font-size:10px;">no photo</div>';
+        const nm=[it.name_en,it.name_cn].filter(Boolean).join(' / ');
+        html+='<tr>'
+          +cell(img,'text-align:center;')
+          +cell('<div style="font-family:monospace;font-weight:600;">'+esc2(it.sku||'-')+'</div>'+(nm?'<div style="font-size:10px;color:#555;">'+esc2(nm)+'</div>':''))
+          +cell(esc2(it.variant||'-'))
+          +cell('<span style="font-family:monospace;">'+num(it.qty)+'</span>','text-align:center;')
+          +cell('<span style="font-family:monospace;">'+(Number(it.price)||0).toFixed(2)+'</span>','text-align:center;')
+          +cell('<span style="font-family:monospace;font-weight:600;">'+((Number(it.qty)||0)*(Number(it.price)||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>','text-align:right;');
+        html+='</tr>';
+      });
+      html+='</table>';
+      cy=addCanvasToPdf(pdf,await renderBlockW(html),cy,pH,pW,mg);
+    }
+
+    // ── FOOTER
+    const ftr='<div style="padding-top:10px;">'
+      +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+      +'<tr><td style="border:'+B+';padding:9px 10px;font-weight:700;">TOTAL QTY · 总数量</td>'
+      +'<td style="border:'+B+';padding:9px 10px;text-align:right;font-family:monospace;font-weight:700;">'+num(tq)+'</td>'
+      +'<td style="border:'+B+';padding:9px 10px;font-weight:700;">TOTAL CNY · 总金额</td>'
+      +'<td style="border:'+B+';padding:9px 10px;text-align:right;font-family:monospace;font-weight:800;">¥'+tc.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>'
+      +'</table>'
+      +(currentPO.notes?'<div style="border:'+B+';border-top:none;padding:9px 10px;font-size:12px;white-space:pre-line;"><b>Catatan · 备注:</b><br>'+esc2(currentPO.notes)+'</div>':'')
+      +'<div style="margin-top:8px;padding:8px 10px;border:1px dashed #666;font-size:12px;">'
+        +'<b>PENTING · 重要:</b> Tulis kode marking <b style="font-family:monospace;font-size:14px;">'+esc2(currentPO.marking_code||'-')+'</b> di setiap karton. '
+        +'请在每个纸箱上标注唛头 <b style="font-family:monospace;font-size:14px;">'+esc2(currentPO.marking_code||'-')+'</b>。'
+      +'</div>'
+      +'<table style="width:100%;border-collapse:collapse;margin-top:22px;font-size:12px;">'
+      +'<tr><td style="width:50%;padding:0 20px 0 0;"><div style="border-bottom:1px solid #000;height:52px;"></div><div style="text-align:center;padding-top:5px;">Buyer · 采购方</div></td>'
+      +'<td style="width:50%;padding:0 0 0 20px;"><div style="border-bottom:1px solid #000;height:52px;"></div><div style="text-align:center;padding-top:5px;">Supplier · 供应商</div></td></tr></table>'
+      +'</div>';
+    cy=addCanvasToPdf(pdf,await renderBlockW(ftr),cy,pH,pW,mg);
+
+    pdf.save((currentPO.po_number||'PO')+'.pdf');
+  }catch(e){
+    console.error(e);alert('Gagal export PDF: '+e.message);
+  }
+  $('pdf-render-w').innerHTML='';
+  btn.textContent=orig;btn.style.pointerEvents='';
 }
 
 // ══════════════════════════════════════════════
