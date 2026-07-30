@@ -313,7 +313,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 /* PO ITEM TABLE */
 .po-tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--rs)}
-.po-tbl{width:100%;border-collapse:collapse;min-width:940px}
+.po-tbl{width:100%;border-collapse:collapse;min-width:1010px}
 .po-tbl th{background:var(--bg3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:9px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
 .po-tbl th small{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:none;letter-spacing:0}
 .po-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
@@ -322,6 +322,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .po-tbl input:hover{border-color:var(--border)}
 .po-tbl input:focus{outline:none;background:var(--bg3);border-color:var(--accent)}
 .po-tbl input.txt{font-family:'Inter',sans-serif}
+.po-photos{display:flex;flex-wrap:wrap;gap:3px;max-width:118px}
+.po-photos .po-thumb{width:34px;height:34px}
+.po-ph-wrap{position:relative;line-height:0}
+.po-ph-x{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border:none;border-radius:50%;background:rgba(0,0,0,.66);color:#fff;font-size:9px;line-height:1;cursor:pointer;padding:0;display:none}
+.po-ph-wrap:hover .po-ph-x{display:block}
+.po-ph-x:hover{background:var(--red)}
+.po-ph-add{width:34px;height:34px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text3);cursor:pointer}
+.po-ph-add:hover{border-color:var(--accent);color:var(--accent)}
+.img-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+.img-nav:hover{background:var(--accent)}
+.img-nav.prev{left:-22px}.img-nav.next{right:-22px}
+.img-count{position:absolute;bottom:-30px;left:0;right:0;text-align:center;color:#fff;font-size:12px;font-weight:600}
 .po-thumb{width:46px;height:46px;border-radius:6px;object-fit:cover;border:1px solid var(--border);display:block;cursor:pointer;background:var(--bg3)}
 .po-thumb-ph{width:46px;height:46px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text3)}
 .po-total-cell{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
@@ -618,7 +630,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <table class="po-tbl">
           <thead>
             <tr>
-              <th style="width:60px">Foto<small>图片</small></th>
+              <th style="width:130px">Foto<small>图片</small></th>
               <th style="width:130px">SKU<small>型号</small></th>
               <th style="width:200px">Produk<small>品名</small></th>
               <th style="width:150px">Variant<small>规格</small></th>
@@ -858,7 +870,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div class="img-modal" id="img-modal" onclick="closeImageModal(event)">
   <div class="img-modal-inner">
     <button class="img-modal-close" onclick="closeImageModal(event)">x</button>
-    <img id="img-modal-preview" alt="Preview"/>
+    <button class="img-nav prev" id="img-prev" onclick="event.stopPropagation();galleryStep(-1)">&#8249;</button>
+    <button class="img-nav next" id="img-next" onclick="event.stopPropagation();galleryStep(1)">&#8250;</button>
+    <div class="img-count" id="img-count"></div>
+    <img id="img-modal-preview" alt="Preview" onclick="event.stopPropagation()"/>
   </div>
 </div>
 
@@ -1684,7 +1699,26 @@ async function compressImage(file){
   });
 }
 
-function openImageModal(src){$('img-modal-preview').src=src;$('img-modal').classList.add('show');}
+let galleryPaths=[], galleryIdx=0;
+function openGallery(paths,i){
+  galleryPaths=(paths||[]).filter(Boolean);
+  if(!galleryPaths.length)return;
+  galleryIdx=Math.max(0,Math.min(i||0,galleryPaths.length-1));
+  paintGallery();$('img-modal').classList.add('show');
+}
+function paintGallery(){
+  const multi=galleryPaths.length>1;
+  $('img-modal-preview').src=galleryPaths[galleryIdx];
+  $('img-prev').style.display=multi?'block':'none';
+  $('img-next').style.display=multi?'block':'none';
+  $('img-count').textContent=multi?(galleryIdx+1)+' / '+galleryPaths.length:'';
+}
+function galleryStep(d){
+  if(!galleryPaths.length)return;
+  galleryIdx=(galleryIdx+d+galleryPaths.length)%galleryPaths.length;
+  paintGallery();
+}
+function openImageModal(src){openGallery([src],0);}
 function closeImageModal(e){if(e.target.id==='img-modal'||e.target.classList.contains('img-modal-close'))$('img-modal').classList.remove('show');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('img-modal')?.classList.remove('show');closeModal('modal-new');closeModal('modal-addorder');}});
 
@@ -2034,6 +2068,13 @@ function renderWarehousePreview(){
     +'<div style="color:var(--text3);margin-top:4px;">收货人 '+esc2(w.contact_name||'-')+' · 电话 '+esc2(w.contact_phone||'-')+'</div></div>';
 }
 
+// foto per baris PO: pakai photo_paths kalau ada, fallback ke photo_path (data lama)
+function itemPhotos(it){
+  let arr=Array.isArray(it.photo_paths)?it.photo_paths.filter(Boolean):[];
+  if(it.photo_path&&!arr.includes(it.photo_path))arr=[it.photo_path,...arr];
+  return arr;
+}
+
 function renderPOItems(){
   const body=$('po-items-body');if(!body)return;
   if(!currentPOItems.length){
@@ -2041,11 +2082,17 @@ function renderPOItems(){
     updatePOTotals();return;
   }
   body.innerHTML=currentPOItems.map((it,i)=>{
-    const url=photoURL(it.photo_path);
     const total=(Number(it.qty)||0)*(Number(it.price)||0);
     const q=Number(it.qty)||0;
+    const ph=itemPhotos(it);
+    const strip='<div class="po-photos">'
+      +ph.map((path,j)=>'<span class="po-ph-wrap"><img class="po-thumb" src="'+photoURL(path)+'" onclick="openRowGallery('+i+','+j+')"/>'
+        +'<button class="po-ph-x" title="Buang foto ini dari PO" onclick="removeItemPhoto('+i+','+j+')">×</button></span>').join('')
+      +'<label class="po-ph-add" title="Tambah foto khusus baris ini">＋<input type="file" accept="image/*" multiple style="display:none" onchange="uploadItemPhotos('+i+',this.files);this.value=\'\'"/></label>'
+      +(it.catalog_product_id?'<span class="po-ph-add" title="Ambil ulang foto dari katalog" onclick="syncItemPhotos('+i+')">⟳</span>':'')
+      +'</div>';
     return '<tr>'
-      +'<td>'+(url?'<img class="po-thumb" src="'+url+'" onclick="openImageModal(\''+url+'\')"/>':'<div class="po-thumb-ph">📷</div>')+'</td>'
+      +'<td>'+strip+'</td>'
       +'<td><input class="txt" value="'+esc2(it.sku||'')+'" placeholder="SKU" style="font-family:\'JetBrains Mono\',monospace" onchange="updatePOItem('+i+',\'sku\',this.value)"/></td>'
       +'<td><input class="txt" value="'+esc2(it.name_en||'')+'" placeholder="Nama produk" onchange="updatePOItem('+i+',\'name_en\',this.value)"/>'
         +'<input class="txt" value="'+esc2(it.name_cn||'')+'" placeholder="品名 (中文)" style="color:var(--text3);font-size:12px;margin-top:2px;" onchange="updatePOItem('+i+',\'name_cn\',this.value)"/></td>'
@@ -2056,6 +2103,45 @@ function renderPOItems(){
       +'<td><button class="po-rowdel" onclick="deletePOItem('+i+')">×</button></td></tr>';
   }).join('');
   updatePOTotals();
+}
+
+function openRowGallery(rowIdx,photoIdx){
+  const ph=itemPhotos(currentPOItems[rowIdx]||{});
+  openGallery(ph.map(photoURL),photoIdx);
+}
+
+async function saveItemPhotos(idx,arr){
+  const it=currentPOItems[idx];if(!it)return;
+  it.photo_paths=arr; it.photo_path=arr[0]||null;
+  await sb.from('po_items').update({photo_paths:arr,photo_path:arr[0]||null}).eq('id',it.id);
+  renderPOItems();
+}
+async function removeItemPhoto(rowIdx,photoIdx){
+  const arr=itemPhotos(currentPOItems[rowIdx]);
+  arr.splice(photoIdx,1);
+  await saveItemPhotos(rowIdx,arr);
+}
+async function uploadItemPhotos(rowIdx,files){
+  const list=Array.from(files||[]);if(!list.length)return;
+  const arr=itemPhotos(currentPOItems[rowIdx]);
+  try{
+    for(const f of list){
+      const compressed=await compressImage(f);
+      const path='catalog/po_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+      const{error}=await sb.storage.from(BUCKET).upload(path,compressed,{contentType:'image/jpeg'});
+      if(error)throw error;
+      arr.push(path);
+    }
+    await saveItemPhotos(rowIdx,arr);
+  }catch(e){alert('Gagal upload: '+e.message);}
+}
+async function syncItemPhotos(rowIdx){
+  const it=currentPOItems[rowIdx];
+  const p=poCatalog.find(x=>x.id===it.catalog_product_id);
+  if(!p){alert('Produk ini sudah tidak ada di katalog.');return;}
+  const arr=photoListOf(p);
+  if(!arr.length){alert('Produk di katalog belum punya foto.');return;}
+  await saveItemPhotos(rowIdx,arr);
 }
 
 function updatePOTotals(){
@@ -2137,7 +2223,7 @@ async function addPickedToPO(){
     const p=poCatalog.find(x=>x.id===id);
     return{po_id:currentPO.id,catalog_product_id:p.id,sku:p.sku||'',name_en:p.name_en||'',name_cn:p.name_cn||'',
       variant:p.variant||'',qty:parseNum(pickerSel[id])||0,price:Number(p.default_price)||0,
-      photo_path:photoListOf(p)[0]||null,sort_order:currentPOItems.length+n};
+      photo_paths:photoListOf(p),photo_path:photoListOf(p)[0]||null,sort_order:currentPOItems.length+n};
   });
   const{data,error}=await sb.from('po_items').insert(rows).select();
   if(error){alert(error.message);return;}
@@ -2167,7 +2253,7 @@ function renderCatalogGrid(){
     const list=photoListOf(p);
     const url=photoURL(list[0]);
     return '<div class="cat-item">'
-      +(url?'<img class="cat-img" src="'+url+'" onclick="openImageModal(\''+url+'\')"/>':'<div class="cat-img-ph">📷</div>')
+      +(url?'<img class="cat-img" src="'+url+'" onclick="openGallery('+JSON.stringify(list.map(photoURL)).replace(/"/g,'&quot;')+',0)"/>':'<div class="cat-img-ph">📷</div>')
       +(list.length>1?'<span class="cat-count">📷 '+list.length+'</span>':'')
       +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'(tanpa SKU)')+'</div>'
       +'<div class="cat-nm">'+esc2(p.name_en||'—')+'</div>'
@@ -2211,7 +2297,7 @@ function renderProdGallery(){
   g.innerHTML=prodPhotos.map((path,i)=>{
     const url=photoURL(path);
     return '<div class="pgal-it'+(i===0?' main':'')+'">'
-      +'<img src="'+url+'" onclick="openImageModal(\''+url+'\')"/>'
+      +'<img src="'+url+'" onclick="openGallery('+JSON.stringify(prodPhotos.map(photoURL)).replace(/"/g,'&quot;')+','+i+')"/>'
       +'<button class="pgal-x" onclick="removeProdPhoto('+i+')">×</button>'
       +'<button class="pgal-star" onclick="setProdPrimary('+i+')">'+(i===0?'★ UTAMA':'jadikan utama')+'</button>'
       +'</div>';
@@ -2397,7 +2483,9 @@ async function exportPOPDF(){
     // pre-load semua foto jadi dataURL (hindari masalah CORS)
     const imgMap={};
     for(const it of currentPOItems){
-      if(it.photo_path&&!imgMap[it.photo_path])imgMap[it.photo_path]=await pathToDataURL(it.photo_path);
+      for(const path of itemPhotos(it)){
+        if(!imgMap[path])imgMap[path]=await pathToDataURL(path);
+      }
     }
 
     const{jsPDF}=window.jspdf;
@@ -2439,27 +2527,36 @@ async function exportPOPDF(){
     cy=addCanvasToPdf(pdf,await renderBlockW(hdr),cy,pH,pW,mg);
 
     // ── TABLE HEADER (mirror format Excel: total di baris header)
-    const thead=(withTotals)=>'<table style="width:100%;border-collapse:collapse;">'
+    const thead=(withTotals)=>'<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'
       +'<tr>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:74px;">Product<br>图片</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:112px;">SKU<br>型号</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:152px;">Product<br>图片</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:98px;">SKU<br>型号</th>'
       +'<th style="border:'+B+';padding:8px;font-size:12px;">Produk<br>品名</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:110px;">Variant<br>规格</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:96px;">Qty<br>数量'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+num(tq)+'</div>':'')+'</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:88px;">Price<br>优级客户价格</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:110px;">Total CNY<br>金额'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+(tc).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:92px;">Variant<br>规格</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:84px;">Qty<br>数量'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+num(tq)+'</div>':'')+'</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:76px;">Price<br>优级客户价格</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:104px;">Total CNY<br>金额'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+(tc).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</th>'
       +'</tr>';
 
-    const CHUNK=7;
+    // maksimal 6 foto per baris di PDF; sisanya diringkas jadi teks
+    const photoCell=(it)=>{
+      const all=itemPhotos(it).filter(p=>imgMap[p]);
+      if(!all.length)return '<div style="color:#bbb;font-size:10px;">no photo</div>';
+      const show=all.slice(0,6), rest=all.length-show.length;
+      return '<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;">'
+        +show.map(p=>'<img src="'+imgMap[p]+'" style="width:'+(all.length===1?110:68)+'px;height:'+(all.length===1?110:68)+'px;object-fit:cover;border:1px solid #ccc;display:block;"/>').join('')
+        +'</div>'+(rest>0?'<div style="font-size:9px;color:#666;margin-top:2px;">+'+rest+' foto lagi</div>':'');
+    };
+
+    const CHUNK=4;
     for(let i=0;i<Math.max(currentPOItems.length,1);i+=CHUNK){
       const slice=currentPOItems.slice(i,i+CHUNK);
       let html=thead(i===0);
       if(!slice.length)html+='<tr>'+cell('&nbsp;')+cell('')+cell('')+cell('')+cell('')+cell('')+cell('')+'</tr>';
       slice.forEach(it=>{
-        const img=imgMap[it.photo_path]?'<img src="'+imgMap[it.photo_path]+'" style="width:60px;height:60px;object-fit:cover;display:block;margin:0 auto;"/>':'<div style="color:#bbb;font-size:10px;">no photo</div>';
         html+='<tr>'
-          +cell(img,'text-align:center;')
-          +cell('<span style="font-family:monospace;font-weight:600;">'+esc2(it.sku||'-')+'</span>')
+          +cell(photoCell(it),'text-align:center;')
+          +cell('<span style="font-family:monospace;font-weight:600;word-break:break-all;">'+esc2(it.sku||'-')+'</span>')
           +cell('<div style="font-weight:600;">'+esc2(it.name_en||'-')+'</div>'+(it.name_cn?'<div style="font-size:13px;">'+esc2(it.name_cn)+'</div>':''))
           +cell(esc2(it.variant||'-'))
           +cell('<span style="font-family:monospace;">'+num(it.qty)+'</span>','text-align:center;')
