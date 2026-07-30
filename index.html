@@ -602,7 +602,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="po-field">
           <label>Klien (internal) · <b>客户</b></label>
-          <input type="text" id="po-f-client" placeholder="Nama klien..." onchange="savePOHeader()"/>
+          <input type="text" id="po-f-client" list="po-client-list" placeholder="Nama klien..." onchange="savePOHeader()" oninput="warnPOClientMismatch()"/>
+          <datalist id="po-client-list"></datalist>
+          <div id="po-client-warn" style="display:none;font-size:11px;color:#d97706;margin-top:3px;"></div>
         </div>
         <div class="po-field">
           <label>Kode Marking · <b>唛头</b></label>
@@ -684,7 +686,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
     <div class="modal-field">
       <label>Klien (opsional)</label>
-      <input type="text" id="inp-po-client" placeholder="Nama klien..."/>
+      <input type="text" id="inp-po-client" list="po-client-list" placeholder="Nama klien..."/>
     </div>
     <div id="new-po-err" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
     <div class="modal-actions">
@@ -1942,6 +1944,38 @@ function fillWarehouseSelect(){
   el.value=v;
 }
 
+function existingClientNames(){
+  // gabungkan nama klien yang sudah pernah dipakai di Orders + akun portal client
+  const set=new Set();
+  Object.keys(allOrders||{}).forEach(n=>n&&set.add(n));
+  Object.keys(allClients||{}).forEach(n=>n&&set.add(n));
+  return[...set].sort((a,b)=>a.localeCompare(b));
+}
+function fillClientDatalist(){
+  const dl=$('po-client-list');if(!dl)return;
+  dl.innerHTML=existingClientNames().map(n=>'<option value="'+esc2(n)+'">').join('');
+}
+// deteksi typo sederhana: nama mirip (huruf sama, beda kapital/spasi) tapi tidak identik
+function normName(s){return(s||'').trim().toLowerCase().replace(/\s+/g,' ');}
+function warnPOClientMismatch(){
+  const w=$('po-client-warn');if(!w)return;
+  const val=($('po-f-client').value||'').trim();
+  if(!val){w.style.display='none';return;}
+  const names=existingClientNames();
+  if(names.includes(val)){w.style.display='none';return;}
+  const norm=normName(val);
+  const close=names.find(n=>normName(n)===norm);
+  if(close){
+    w.style.display='block';
+    w.innerHTML='⚠ Beda ejaan dari klien yang sudah ada: <b>"'+esc2(close)+'"</b>. Order bisa kepisah jadi grup baru. <button type="button" style="border:none;background:none;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:11px;padding:0;" onclick="$(\'po-f-client\').value='+JSON.stringify(close)+';savePOHeader();warnPOClientMismatch();">Pakai "'+esc2(close)+'"</button>';
+  }else if(names.length){
+    w.style.display='block';
+    w.innerHTML='ℹ Klien baru — belum pernah dipakai sebelumnya. Pastikan ejaannya sudah benar.';
+  }else{
+    w.style.display='none';
+  }
+}
+
 // ══════════════════════════════════════════════
 // PO LIST
 // ══════════════════════════════════════════════
@@ -1968,6 +2002,7 @@ function renderPOPanel(){
 
 function openNewPOModal(){
   fillSupplierSelects();
+  fillClientDatalist();
   $('inp-po-date').value=new Date().toISOString().split('T')[0];
   $('inp-po-code').value='PST';
   $('inp-po-client').value='';
@@ -2021,6 +2056,8 @@ async function openPO(id){
   $('po-f-supplier').value=po.supplier_id||'';
   $('po-f-status').value=po.status||'draft';
   $('po-f-client').value=po.client_name||'';
+  fillClientDatalist();
+  warnPOClientMismatch();
   $('po-f-marking').value=po.marking_code||'';
   $('po-f-warehouse').value=po.warehouse_id||'';
   $('po-f-notes').value=po.notes||'';
@@ -2473,6 +2510,11 @@ async function generateOrderFromPO(){
   if(!client){
     alert('Isi nama Klien (internal) dulu di Info PO — order butuh nama klien.');
     $('po-f-client').focus();
+    return;
+  }
+  const names=existingClientNames();
+  const close=names.find(n=>normName(n)===normName(client)&&n!==client);
+  if(close&&!confirm('Nama klien "'+client+'" mirip tapi beda ejaan dari klien yang sudah ada: "'+close+'".\n\nOrder akan masuk grup klien BARU, terpisah dari "'+close+'".\n\nLanjutkan dengan ejaan ini?')){
     return;
   }
   if(!currentPOItems.length){
