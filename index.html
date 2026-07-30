@@ -313,7 +313,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 /* PO ITEM TABLE */
 .po-tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--rs)}
-.po-tbl{width:100%;border-collapse:collapse;min-width:720px}
+.po-tbl{width:100%;border-collapse:collapse;min-width:940px}
 .po-tbl th{background:var(--bg3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:9px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
 .po-tbl th small{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:none;letter-spacing:0}
 .po-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
@@ -363,6 +363,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .sub-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
 .sub-tab{padding:7px 15px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
 .sub-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pgal{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pgal-it{position:relative;width:78px;height:78px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg3)}
+.pgal-it.main{border:2px solid var(--accent);box-shadow:0 0 0 2px var(--og)}
+.pgal-it img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.pgal-x{position:absolute;top:2px;right:2px;width:19px;height:19px;border:none;border-radius:50%;background:rgba(0,0,0,.62);color:#fff;font-size:12px;line-height:1;cursor:pointer;padding:0}
+.pgal-x:hover{background:var(--red)}
+.pgal-star{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.62);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:2px 0;cursor:pointer;border:none;font-family:inherit;width:100%}
+.pgal-it.main .pgal-star{background:var(--accent)}
+.pgal-add{width:78px;height:78px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text3);cursor:pointer}
+.pgal-add:hover{border-color:var(--accent);color:var(--accent)}
+.cat-count{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;border-radius:100px;padding:2px 7px}
+.cat-item{position:relative}
 #pdf-render-w{position:fixed;top:-99999px;left:0;width:820px;background:#fff;color:#111}
 </style>
 </head>
@@ -607,8 +619,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           <thead>
             <tr>
               <th style="width:60px">Foto<small>图片</small></th>
-              <th style="width:150px">SKU<small>型号</small></th>
-              <th style="width:180px">Variant<small>规格</small></th>
+              <th style="width:130px">SKU<small>型号</small></th>
+              <th style="width:200px">Produk<small>品名</small></th>
+              <th style="width:150px">Variant<small>规格</small></th>
               <th style="width:100px">Qty<small>数量</small></th>
               <th style="width:110px">Price<small>优级客户价格</small></th>
               <th style="width:120px">Total CNY<small>金额</small></th>
@@ -622,6 +635,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <button class="btn-mini" onclick="openCatalogPicker()">＋ Pilih dari Katalog</button>
         <button class="btn-mini ghost" onclick="addPOItemBlank()">＋ Baris Kosong</button>
       </div>
+      <div id="po-warn" style="display:none;margin-top:10px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:8px;padding:9px 12px;font-size:12px;"></div>
       <div class="po-sum">
         <div class="po-sum-item"><div class="po-sum-lbl">Total Qty · 总数量</div><div class="po-sum-val" id="po-sum-qty">0</div></div>
         <div class="po-sum-item"><div class="po-sum-lbl">Total CNY · 总金额</div><div class="po-sum-val" id="po-sum-cny">¥0.00</div></div>
@@ -704,31 +718,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 
 <!-- MODAL: PRODUCT (CATALOG) -->
-<div class="modal-bg" id="modal-product" onclick="closeModalIf(event,'modal-product')">
+<div class="modal-bg" id="modal-product" onclick="if(event.target.id==='modal-product')cancelProductModal()">
   <div class="modal wide">
     <h2 id="prod-modal-title">Tambah Produk Katalog</h2>
     <p>Produk tersimpan bisa dipakai ulang di PO mana pun</p>
     <input type="hidden" id="inp-prod-id"/>
-    <input type="hidden" id="inp-prod-photo"/>
-    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;">
-      <div>
-        <div id="prod-photo-preview" class="cat-img-ph" style="width:110px;height:110px;border-radius:10px;">📷</div>
-        <label class="btn-mini ghost" style="display:block;text-align:center;margin-top:8px;cursor:pointer;">
-          Upload Foto<input type="file" accept="image/*" style="display:none" onchange="uploadCatalogPhoto(this.files[0])"/>
-        </label>
-      </div>
-      <div style="flex:1;min-width:220px;">
-        <div class="modal-field"><label>Supplier</label><select id="inp-prod-supplier"></select></div>
-        <div class="modal-field"><label>SKU · 型号</label><input type="text" id="inp-prod-sku" placeholder="cth: KKM-WGL-01" style="font-family:'JetBrains Mono',monospace"/></div>
-      </div>
-    </div>
+    <div class="modal-field"><label>Supplier</label><select id="inp-prod-supplier"></select></div>
+    <div class="modal-field"><label>SKU · 型号</label><input type="text" id="inp-prod-sku" placeholder="cth: KKM-WGL-01" style="font-family:'JetBrains Mono',monospace"/></div>
     <div class="modal-field"><label>Nama Produk (ID/EN)</label><input type="text" id="inp-prod-name" placeholder="cth: Kaos Kaki Motif"/></div>
     <div class="modal-field"><label>Nama Produk 中文 (品名)</label><input type="text" id="inp-prod-name-cn" placeholder="cth: 花纹袜子"/></div>
     <div class="modal-field"><label>Variant · 规格</label><input type="text" id="inp-prod-variant" placeholder="cth: Merah / L"/></div>
     <div class="modal-field"><label>Harga Default (CNY) · 优级客户价格</label><input type="text" id="inp-prod-price" placeholder="cth: 2.5" style="font-family:'JetBrains Mono',monospace"/></div>
+    <div class="modal-field">
+      <label>Foto Produk · 产品图片 <span style="text-transform:none;letter-spacing:0;font-weight:400;">— bisa banyak. Yang bertanda ★ UTAMA dipakai di PO &amp; PDF.</span></label>
+      <div class="pgal" id="prod-gallery"></div>
+      <div id="prod-upload-status" style="font-size:11px;color:var(--accent);margin-top:8px;display:none;"></div>
+    </div>
     <div id="prod-err" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
     <div class="modal-actions">
-      <button class="modal-btn secondary" onclick="closeModal('modal-product')">Batal</button>
+      <button class="modal-btn secondary" onclick="cancelProductModal()">Batal</button>
       <button class="modal-btn primary" id="btn-save-prod" onclick="saveProduct()">Simpan</button>
     </div>
   </div>
@@ -2029,17 +2037,20 @@ function renderWarehousePreview(){
 function renderPOItems(){
   const body=$('po-items-body');if(!body)return;
   if(!currentPOItems.length){
-    body.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text3);font-size:13px;">Belum ada produk. Klik "Pilih dari Katalog".</td></tr>';
+    body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text3);font-size:13px;">Belum ada produk. Klik "Pilih dari Katalog".</td></tr>';
     updatePOTotals();return;
   }
   body.innerHTML=currentPOItems.map((it,i)=>{
     const url=photoURL(it.photo_path);
     const total=(Number(it.qty)||0)*(Number(it.price)||0);
+    const q=Number(it.qty)||0;
     return '<tr>'
       +'<td>'+(url?'<img class="po-thumb" src="'+url+'" onclick="openImageModal(\''+url+'\')"/>':'<div class="po-thumb-ph">📷</div>')+'</td>'
-      +'<td><input class="txt" value="'+esc2(it.sku||'')+'" style="font-family:\'JetBrains Mono\',monospace" onchange="updatePOItem('+i+',\'sku\',this.value)"/></td>'
-      +'<td><input class="txt" value="'+esc2(it.variant||'')+'" onchange="updatePOItem('+i+',\'variant\',this.value)"/></td>'
-      +'<td><input value="'+(it.qty||0)+'" onchange="updatePOItem('+i+',\'qty\',this.value)"/></td>'
+      +'<td><input class="txt" value="'+esc2(it.sku||'')+'" placeholder="SKU" style="font-family:\'JetBrains Mono\',monospace" onchange="updatePOItem('+i+',\'sku\',this.value)"/></td>'
+      +'<td><input class="txt" value="'+esc2(it.name_en||'')+'" placeholder="Nama produk" onchange="updatePOItem('+i+',\'name_en\',this.value)"/>'
+        +'<input class="txt" value="'+esc2(it.name_cn||'')+'" placeholder="品名 (中文)" style="color:var(--text3);font-size:12px;margin-top:2px;" onchange="updatePOItem('+i+',\'name_cn\',this.value)"/></td>'
+      +'<td><input class="txt" value="'+esc2(it.variant||'')+'" placeholder="Variant" onchange="updatePOItem('+i+',\'variant\',this.value)"/></td>'
+      +'<td><input value="'+(it.qty||0)+'" style="'+(q<=0?'color:var(--red);':'')+'" onchange="updatePOItem('+i+',\'qty\',this.value)"/></td>'
       +'<td><input value="'+(it.price||0)+'" onchange="updatePOItem('+i+',\'price\',this.value)"/></td>'
       +'<td class="po-total-cell" id="po-tot-'+i+'">'+cny(total)+'</td>'
       +'<td><button class="po-rowdel" onclick="deletePOItem('+i+')">×</button></td></tr>';
@@ -2052,6 +2063,13 @@ function updatePOTotals(){
   const tc=currentPOItems.reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0);
   $('po-sum-qty').textContent=num(tq);
   $('po-sum-cny').textContent=cny(tc);
+  const zero=currentPOItems.filter(i=>(Number(i.qty)||0)<=0).length;
+  const noName=currentPOItems.filter(i=>!i.sku&&!i.name_en&&!i.name_cn).length;
+  const w=$('po-warn');if(!w)return;
+  const msgs=[];
+  if(zero)msgs.push(zero+' baris masih Qty 0 — supplier tidak tahu harus kirim berapa.');
+  if(noName)msgs.push(noName+' baris tanpa SKU maupun nama produk.');
+  if(msgs.length){w.style.display='block';w.innerHTML='⚠ '+msgs.join('<br>⚠ ');}else{w.style.display='none';}
 }
 
 async function updatePOItem(idx,field,val){
@@ -2092,14 +2110,16 @@ function renderPicker(){
   const g=$('picker-grid');
   if(!rows.length){g.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Belum ada produk di katalog. Buat dulu di tab Katalog.</div>';return;}
   g.innerHTML='<div class="cat-grid">'+rows.map(p=>{
-    const url=photoURL(p.photo_path);
+    const list=photoListOf(p);
+    const url=photoURL(list[0]);
     const on=pickerSel[p.id]!==undefined;
     const other=p.supplier_id&&supId&&p.supplier_id!==supId;
     return '<div class="cat-item cat-sel'+(on?' picked':'')+'" onclick="togglePick(\''+p.id+'\')">'
       +'<span class="tick">✓</span>'
       +(url?'<img class="cat-img" src="'+url+'"/>':'<div class="cat-img-ph">📷</div>')
-      +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'-')+'</div>'
-      +'<div class="cat-nm">'+esc2(p.name_en||'')+'</div>'
+      +(list.length>1?'<span class="cat-count">📷 '+list.length+'</span>':'')
+      +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'(tanpa SKU)')+'</div>'
+      +'<div class="cat-nm">'+esc2(p.name_en||'—')+'</div>'
       +'<div class="cat-cn">'+esc2(p.name_cn||'')+(p.variant?' · '+esc2(p.variant):'')+'</div>'
       +'<div class="cat-price">'+cny(p.default_price)+(other?' <span style="color:var(--yellow);font-size:10px;">⚠ supplier lain</span>':'')+'</div></div>'
       +(on?'<div class="cat-qtybox" onclick="event.stopPropagation()"><input type="text" placeholder="Qty" value="'+(pickerSel[p.id]||'')+'" oninput="pickerSel[\''+p.id+'\']=this.value"/></div>':'')
@@ -2117,7 +2137,7 @@ async function addPickedToPO(){
     const p=poCatalog.find(x=>x.id===id);
     return{po_id:currentPO.id,catalog_product_id:p.id,sku:p.sku||'',name_en:p.name_en||'',name_cn:p.name_cn||'',
       variant:p.variant||'',qty:parseNum(pickerSel[id])||0,price:Number(p.default_price)||0,
-      photo_path:p.photo_path||null,sort_order:currentPOItems.length+n};
+      photo_path:photoListOf(p)[0]||null,sort_order:currentPOItems.length+n};
   });
   const{data,error}=await sb.from('po_items').insert(rows).select();
   if(error){alert(error.message);return;}
@@ -2144,11 +2164,13 @@ function renderCatalogGrid(){
   const rows=poCatalog.filter(p=>(!f||p.supplier_id===f)&&(!q||(p.sku||'').toLowerCase().includes(q)||(p.name_en||'').toLowerCase().includes(q)||(p.name_cn||'').includes(q)));
   if(!rows.length){el.innerHTML='<div class="empty-state"><div class="ei">🏷️</div><p>Belum ada produk</p><small>Klik "＋ Produk" untuk menambah ke katalog</small></div>';return;}
   el.innerHTML='<div class="cat-grid">'+rows.map(p=>{
-    const url=photoURL(p.photo_path);
+    const list=photoListOf(p);
+    const url=photoURL(list[0]);
     return '<div class="cat-item">'
       +(url?'<img class="cat-img" src="'+url+'" onclick="openImageModal(\''+url+'\')"/>':'<div class="cat-img-ph">📷</div>')
-      +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'-')+'</div>'
-      +'<div class="cat-nm">'+esc2(p.name_en||'')+'</div>'
+      +(list.length>1?'<span class="cat-count">📷 '+list.length+'</span>':'')
+      +'<div class="cat-body"><div class="cat-sku">'+esc2(p.sku||'(tanpa SKU)')+'</div>'
+      +'<div class="cat-nm">'+esc2(p.name_en||'—')+'</div>'
       +'<div class="cat-cn">'+esc2(p.name_cn||'')+(p.variant?' · '+esc2(p.variant):'')+'</div>'
       +'<div class="cat-price">'+cny(p.default_price)+'</div>'
       +'<div class="cat-cn" style="margin-top:4px;">'+esc2(supName(p.supplier_id))+'</div></div>'
@@ -2156,42 +2178,81 @@ function renderCatalogGrid(){
   }).join('')+'</div>';
 }
 
+let prodPhotos=[], prodPhotosBefore=[];
+
 function openProductModal(id){
   fillSupplierSelects();
   $('prod-err').style.display='none';
   const p=id?poCatalog.find(x=>x.id===id):null;
   $('prod-modal-title').textContent=p?'Edit Produk':'Tambah Produk Katalog';
   $('inp-prod-id').value=p?.id||'';
-  $('inp-prod-photo').value=p?.photo_path||'';
   $('inp-prod-supplier').value=p?.supplier_id||'';
   $('inp-prod-sku').value=p?.sku||'';
   $('inp-prod-name').value=p?.name_en||'';
   $('inp-prod-name-cn').value=p?.name_cn||'';
   $('inp-prod-variant').value=p?.variant||'';
   $('inp-prod-price').value=p?.default_price??'';
-  setProdPhotoPreview(p?.photo_path||'');
+  prodPhotos=photoListOf(p);
+  prodPhotosBefore=prodPhotos.slice();
+  renderProdGallery();
   openModal('modal-product');
 }
-function setProdPhotoPreview(path){
-  const el=$('prod-photo-preview');
-  if(path){const url=photoURL(path);el.outerHTML='<img id="prod-photo-preview" class="cat-img" src="'+url+'" style="width:110px;height:110px;border-radius:10px;object-fit:cover;"/>';}
-  else{el.outerHTML='<div id="prod-photo-preview" class="cat-img-ph" style="width:110px;height:110px;border-radius:10px;">📷</div>';}
+
+// gabungkan photo_paths (baru) + photo_path (lama) supaya data lama tetap tampil
+function photoListOf(p){
+  if(!p)return[];
+  let arr=Array.isArray(p.photo_paths)?p.photo_paths.filter(Boolean):[];
+  if(p.photo_path&&!arr.includes(p.photo_path))arr=[p.photo_path,...arr];
+  return arr;
 }
-async function uploadCatalogPhoto(file){
-  if(!file)return;
-  const btn=$('btn-save-prod');btn.disabled=true;btn.textContent='Upload...';
+
+function renderProdGallery(){
+  const g=$('prod-gallery');if(!g)return;
+  g.innerHTML=prodPhotos.map((path,i)=>{
+    const url=photoURL(path);
+    return '<div class="pgal-it'+(i===0?' main':'')+'">'
+      +'<img src="'+url+'" onclick="openImageModal(\''+url+'\')"/>'
+      +'<button class="pgal-x" onclick="removeProdPhoto('+i+')">×</button>'
+      +'<button class="pgal-star" onclick="setProdPrimary('+i+')">'+(i===0?'★ UTAMA':'jadikan utama')+'</button>'
+      +'</div>';
+  }).join('')
+  +'<label class="pgal-add">＋<input type="file" accept="image/*" multiple style="display:none" onchange="uploadCatalogPhotos(this.files);this.value=\'\'"/></label>';
+}
+
+function setProdPrimary(i){
+  if(i<=0)return;
+  const[x]=prodPhotos.splice(i,1);prodPhotos.unshift(x);renderProdGallery();
+}
+function removeProdPhoto(i){
+  prodPhotos.splice(i,1);renderProdGallery();
+}
+
+async function uploadCatalogPhotos(files){
+  const arr=Array.from(files||[]);if(!arr.length)return;
+  const btn=$('btn-save-prod'), st=$('prod-upload-status');
+  btn.disabled=true;st.style.display='block';
   try{
-    const compressed=await compressImage(file);
-    const path='catalog/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
-    const{error}=await sb.storage.from(BUCKET).upload(path,compressed,{contentType:'image/jpeg'});
-    if(error)throw error;
-    const old=$('inp-prod-photo').value;
-    if(old)await sb.storage.from(BUCKET).remove([old]);
-    $('inp-prod-photo').value=path;
-    setProdPhotoPreview(path);
+    for(let i=0;i<arr.length;i++){
+      st.textContent='Upload foto '+(i+1)+'/'+arr.length+'...';
+      const compressed=await compressImage(arr[i]);
+      const path='catalog/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+      const{error}=await sb.storage.from(BUCKET).upload(path,compressed,{contentType:'image/jpeg'});
+      if(error)throw error;
+      prodPhotos.push(path);
+      renderProdGallery();
+    }
   }catch(e){const er=$('prod-err');er.textContent=e.message;er.style.display='block';}
-  btn.disabled=false;btn.textContent='Simpan';
+  st.style.display='none';btn.disabled=false;
 }
+
+// buang file yang sempat diupload tapi batal disimpan
+async function cancelProductModal(){
+  const orphans=prodPhotos.filter(p=>!prodPhotosBefore.includes(p));
+  if(orphans.length)await sb.storage.from(BUCKET).remove(orphans);
+  prodPhotos=[];prodPhotosBefore=[];
+  closeModal('modal-product');
+}
+
 async function saveProduct(){
   const id=$('inp-prod-id').value;
   const payload={
@@ -2201,20 +2262,28 @@ async function saveProduct(){
     name_cn:$('inp-prod-name-cn').value||null,
     variant:$('inp-prod-variant').value||null,
     default_price:parseNum($('inp-prod-price').value),
-    photo_path:$('inp-prod-photo').value||null
+    photo_paths:prodPhotos,
+    photo_path:prodPhotos[0]||null
   };
-  if(!payload.sku&&!payload.name_en){const er=$('prod-err');er.textContent='Isi minimal SKU atau nama produk.';er.style.display='block';return;}
+  if(!payload.sku&&!payload.name_en&&!payload.name_cn){
+    const er=$('prod-err');er.textContent='Isi minimal SKU atau nama produk.';er.style.display='block';return;
+  }
   let res;
   if(id)res=await sb.from('catalog_products').update(payload).eq('id',id).select().single();
   else res=await sb.from('catalog_products').insert(payload).select().single();
   if(res.error){const er=$('prod-err');er.textContent=res.error.message;er.style.display='block';return;}
+  // hapus foto yang dibuang saat edit
+  const removed=prodPhotosBefore.filter(p=>!prodPhotos.includes(p));
+  if(removed.length)await sb.storage.from(BUCKET).remove(removed);
   if(id)poCatalog=poCatalog.map(p=>p.id===id?res.data:p);else poCatalog.unshift(res.data);
+  prodPhotos=[];prodPhotosBefore=[];
   closeModal('modal-product');renderCatalogGrid();
 }
 async function deleteProduct(id){
   const p=poCatalog.find(x=>x.id===id);
   if(!confirm('Hapus produk "'+(p?.sku||p?.name_en||'')+'" dari katalog?'))return;
-  if(p?.photo_path)await sb.storage.from(BUCKET).remove([p.photo_path]);
+  const all=photoListOf(p);
+  if(all.length)await sb.storage.from(BUCKET).remove(all);
   await sb.from('catalog_products').delete().eq('id',id);
   poCatalog=poCatalog.filter(x=>x.id!==id);renderCatalogGrid();
 }
@@ -2372,25 +2441,26 @@ async function exportPOPDF(){
     // ── TABLE HEADER (mirror format Excel: total di baris header)
     const thead=(withTotals)=>'<table style="width:100%;border-collapse:collapse;">'
       +'<tr>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:80px;">Product<br>图片</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:130px;">SKU<br>型号</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;">Variant<br>规格</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:110px;">Qty<br>数量'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+num(tq)+'</div>':'')+'</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:100px;">Price<br>优级客户价格</th>'
-      +'<th style="border:'+B+';padding:8px;font-size:12px;width:120px;">Total CNY<br>金额'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+(tc).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:74px;">Product<br>图片</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:112px;">SKU<br>型号</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;">Produk<br>品名</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:110px;">Variant<br>规格</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:96px;">Qty<br>数量'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+num(tq)+'</div>':'')+'</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:88px;">Price<br>优级客户价格</th>'
+      +'<th style="border:'+B+';padding:8px;font-size:12px;width:110px;">Total CNY<br>金额'+(withTotals?'<div style="border-top:1px solid #000;margin-top:5px;padding-top:4px;font-family:monospace;">'+(tc).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</th>'
       +'</tr>';
 
     const CHUNK=7;
     for(let i=0;i<Math.max(currentPOItems.length,1);i+=CHUNK){
       const slice=currentPOItems.slice(i,i+CHUNK);
       let html=thead(i===0);
-      if(!slice.length)html+='<tr>'+cell('&nbsp;')+cell('')+cell('')+cell('')+cell('')+cell('')+'</tr>';
+      if(!slice.length)html+='<tr>'+cell('&nbsp;')+cell('')+cell('')+cell('')+cell('')+cell('')+cell('')+'</tr>';
       slice.forEach(it=>{
-        const img=imgMap[it.photo_path]?'<img src="'+imgMap[it.photo_path]+'" style="width:62px;height:62px;object-fit:cover;display:block;margin:0 auto;"/>':'<div style="color:#bbb;font-size:10px;">no photo</div>';
-        const nm=[it.name_en,it.name_cn].filter(Boolean).join(' / ');
+        const img=imgMap[it.photo_path]?'<img src="'+imgMap[it.photo_path]+'" style="width:60px;height:60px;object-fit:cover;display:block;margin:0 auto;"/>':'<div style="color:#bbb;font-size:10px;">no photo</div>';
         html+='<tr>'
           +cell(img,'text-align:center;')
-          +cell('<div style="font-family:monospace;font-weight:600;">'+esc2(it.sku||'-')+'</div>'+(nm?'<div style="font-size:10px;color:#555;">'+esc2(nm)+'</div>':''))
+          +cell('<span style="font-family:monospace;font-weight:600;">'+esc2(it.sku||'-')+'</span>')
+          +cell('<div style="font-weight:600;">'+esc2(it.name_en||'-')+'</div>'+(it.name_cn?'<div style="font-size:13px;">'+esc2(it.name_cn)+'</div>':''))
           +cell(esc2(it.variant||'-'))
           +cell('<span style="font-family:monospace;">'+num(it.qty)+'</span>','text-align:center;')
           +cell('<span style="font-family:monospace;">'+(Number(it.price)||0).toFixed(2)+'</span>','text-align:center;')
