@@ -568,6 +568,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div style="font-size:12px;color:var(--text3);margin-top:2px;">Purchase Order · 采购订单</div>
       </div>
       <div class="calc-topbar-right">
+        <button class="btn-mini ghost" id="po-gen-order-btn" onclick="generateOrderFromPO()">🧾 Generate Order</button>
         <button class="btn-mini ghost" id="po-export-btn" onclick="exportPOPDF()">⬇ Export PDF</button>
       </div>
     </div>
@@ -1960,6 +1961,7 @@ function renderPOPanel(){
       +'<div class="po-card-left"><div class="po-num">'+esc2(p.po_number||'(tanpa nomor)')+'</div>'
       +'<div class="po-meta">'+esc2(supName(p.supplier_id))+' · '+items.length+' item · '+num(tq)+' pcs · '+cny(tc)+'</div></div>'
       +'<div class="po-card-right"><span class="po-status po-st-'+(p.status||'draft')+'">'+(poStatusLabel[p.status]||'DRAFT')+'</span>'
+      +(p.order_id?'<span title="Sudah ada order terkait" style="font-size:15px;">🧾</span>':'')
       +'<button class="client-del" onclick="event.stopPropagation();deletePO(\''+p.id+'\')">🗑</button></div></div>';
   }).join('');
 }
@@ -2024,6 +2026,7 @@ async function openPO(id){
   $('po-f-notes').value=po.notes||'';
   renderWarehousePreview();
   renderPOItems();
+  updatePOGenOrderBtn();
   const eb=$('exp-bar');if(eb)eb.style.display='none';
   showScreen('screen-po');
 }
@@ -2451,6 +2454,66 @@ async function deleteWarehouse(id){
   if(!confirm('Hapus gudang ini?'))return;
   await sb.from('forwarder_warehouses').delete().eq('id',id);
   poWarehouses=poWarehouses.filter(x=>x.id!==id);fillWarehouseSelect();renderWarehouseList();
+}
+
+// ══════════════════════════════════════════════
+// GENERATE ORDER FROM PO
+// ══════════════════════════════════════════════
+function updatePOGenOrderBtn(){
+  const btn=$('po-gen-order-btn');if(!btn)return;
+  if(currentPO.order_id){btn.textContent='🧾 Lihat Order';btn.onclick=()=>openOrder(currentPO.order_id);}
+  else{btn.textContent='🧾 Generate Order';btn.onclick=generateOrderFromPO;}
+}
+
+async function generateOrderFromPO(){
+  if(!currentPO)return;
+  if(currentPO.order_id){openOrder(currentPO.order_id);return;}
+
+  const client=(currentPO.client_name||'').trim();
+  if(!client){
+    alert('Isi nama Klien (internal) dulu di Info PO — order butuh nama klien.');
+    $('po-f-client').focus();
+    return;
+  }
+  if(!currentPOItems.length){
+    alert('PO belum ada produk. Tambahkan produk dulu sebelum generate order.');
+    return;
+  }
+
+  const btn=$('po-gen-order-btn');const orig=btn.textContent;
+  btn.textContent='Membuat order...';btn.style.pointerEvents='none';
+  try{
+    const prof=Object.values(allClients).find(p=>p.full_name===client||p.email===client);
+    const{data:order,error}=await sb.from('orders').insert({
+      client_name:client, client_id:prof?.id||currentUser.id,
+      order_date:currentPO.po_date||new Date().toISOString().slice(0,10),
+      global_rate:2600, payment_status:'belum_bayar'
+    }).select().single();
+    if(error)throw error;
+
+    const prods=currentPOItems.map((it,i)=>({
+      order_id:order.id,
+      name:[it.sku,it.name_en||it.name_cn,it.variant].filter(Boolean).join(' · ')||('Produk '+(i+1)),
+      harga_yuan:Number(it.price)||0,
+      qty_per_dus:Number(it.qty)||0,
+      jumlah_dus:1,
+      sort_order:i
+    }));
+    const{error:pErr}=await sb.from('products').insert(prods);
+    if(pErr)throw pErr;
+
+    await sb.from('purchase_orders').update({order_id:order.id}).eq('id',currentPO.id);
+    currentPO.order_id=order.id;
+    poList=poList.map(p=>p.id===currentPO.id?{...p,order_id:order.id}:p);
+    updatePOGenOrderBtn();
+
+    if(confirm('Order untuk "'+client+'" berhasil dibuat dengan '+prods.length+' produk.\n\nHarga & qty sudah terisi dari PO. Dimensi dus, biaya CBM, dan ongkir lokal masih perlu diisi manual.\n\nBuka order sekarang?')){
+      openOrder(order.id);
+    }
+  }catch(e){
+    alert('Gagal membuat order: '+e.message);
+  }
+  btn.textContent=orig;btn.style.pointerEvents='';
 }
 
 // ══════════════════════════════════════════════
